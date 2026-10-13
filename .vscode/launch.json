@@ -1,0 +1,32 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Step 1: smoke test",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/smoke_test.py",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "env": {
+        "MOCK_LLM": "true",
+        "CREWAI_DISABLE_TELEMETRY": "true",
+        "OTEL_SDK_DISABLED": "true"
+      }
+    },
+    {
+      "name": "All tests (pytest)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["-q"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "env": {
+        "MOCK_LLM": "true",
+        "CREWAI_DISABLE_TELEMETRY": "true",
+        "OTEL_SDK_DISABLED": "true"
+      }
+    }
+  ]
+}

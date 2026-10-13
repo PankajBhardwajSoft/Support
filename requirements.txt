@@ -1,0 +1,12 @@
+# Exact versions, checked against PyPI on 2026-10-13. Python 3.11.
+# pydantic is held at 2.12.5 because crewai 1.15.27 requires pydantic <2.13.
+crewai==1.15.27
+autogen-agentchat==0.7.5
+chromadb==1.5.9
+sentence-transformers==6.1.0
+langchain-core==1.6.10
+fastapi==0.143.0
+pydantic==2.12.5
+uvicorn==0.54.0
+httpx==0.28.1
+pytest==9.1.1
