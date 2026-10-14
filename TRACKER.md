@@ -44,7 +44,7 @@ Status values: Not started / In progress / Done / Failed
 |---|---|---|---|---|---|---|
 | 3.1 | >=2 HTTP endpoints plus 1 WebSocket that survives a disconnect, with Pydantic models | Done | `ola_agent/api.py` | `transcripts/step4_api.txt` | D3, D4, D5, D6, D11 | `POST /ask`, `POST /add-document`, `WS /ws/chat`; also checked under real uvicorn |
 | 3.2 | One JSON-Lines log entry with trace ID per request | Done | `ola_agent/request_log.py`, `ola_agent/api.py` | `transcripts/step4_api.txt` | D1, D2, D7, D11 | Phones masked before writing; 422s logged too |
-| 3.3 | Accuracy, Grounding, Completeness, Safety per query for 15 queries, plus averages | Done | `ola_agent/evaluation.py` | `transcripts/step4_eval.txt` | D8, D9, D13 | Rule-based mock judge (PRD Q6); F8 fixed; averages A 0.87, G 1.00, C 1.00, S 1.00; F9 change request open |
+| 3.3 | Accuracy, Grounding, Completeness, Safety per query for 15 queries, plus averages | Done | `ola_agent/evaluation.py` | `transcripts/step4_eval.txt` | D8, D9, D13 | Rule-based mock judge (PRD Q6); F8 fixed; F9 fixed by approved change request; averages A 1.00, G 1.00, C 1.00, S 1.00 (0.87 accuracy before F9) |
 
 ## Part 4: Resilience and governance
 

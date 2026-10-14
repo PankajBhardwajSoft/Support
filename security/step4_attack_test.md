@@ -28,11 +28,11 @@ The app was also started under real `uvicorn` on `127.0.0.1` and checked with `/
 - **Retest:** D13 drops its `xfail` and must pass. The evaluation is rerun and the new averages are reported.
 - **Status: fixed (approved by PANKAJ, 2026-10-14).** The accuracy rule and its line in `JUDGE_PROMPT` now give 0.5 when other documents are mixed in. Retest: D13 passes. The evaluation now shows queries 1, 7, 9 and 11 at 0.50 accuracy, and average accuracy is 0.87 (was 1.00).
 
-## F9: The answer pipeline mixes unrelated documents into an answer (step 3 behaviour)
+## F9: The answer pipeline mixes unrelated documents into an answer (step 3 behaviour, fixed by change request)
 
 - **Finding:** In 4 of the 12 in-scope evaluation answers (queries 1, 7, 9 and 11), the answer includes a passage from another document. For example, the stranded-rider answer ends with "Riders get a full refund when a trip is charged but never completed...".
 - **Root cause:** `ola_agent/guardrails.py`, `check_groundedness()` keeps every passage at or above the 0.433 threshold, whichever document it comes from. The threshold says "this passage is on topic for Ola support", not "this passage answers this question".
-- **Status: change request posted, waiting for PANKAJ's OK** (`plans/change-request-F9.md` in the project files). Measured on 17 labelled questions, every extra document kept is a wrong one; the recommendation is to keep passages from the best-matching document only.
+- **Status: fixed (change request option A approved by PANKAJ, 2026-10-14).** `check_groundedness()` now keeps passages only from the best-matching document (`plans/change-request-F9.md` in the project files has the measurements). New test `test_groundedness_keeps_only_best_document`. Retest: the evaluation's 4 mixed answers now use one document, and average accuracy is back to 1.00. The step 3 crew and guardrail transcripts did not change. Limit: a question that truly needs two documents gets only the best one; none of our 17 labelled questions does.
 - **Why not fixed directly:** `check_groundedness()` was approved and merged in step 3, so a fix needs a change request (rule.md section 4). Some questions do need two documents (for example, a late driver touches both KB-08 credits and KB-04 refunds), so "keep only the top document" could lose real answers. The right rule must be measured on our queries first. F8's fix makes the evaluation report this problem instead of hiding it.
 
 ## Other observations (no fix proposed now)

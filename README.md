@@ -130,7 +130,7 @@ Every crew response is a `SupportResponse` (`ola_agent/schema.py`): `answer`, `s
 | Input | Phone masking | Indian mobile numbers (optional `+91`, `91` or `0`; spaces or dashes allowed) become `[PHONE]` before the crew or memory sees the text |
 | Input | Prompt injection | Pattern rules on Unicode-normalized text (e.g. "ignore previous instructions", "reveal your system prompt") |
 | Input | Competitor scope | A question naming another ride company (Uber, Rapido, BluSmart, Meru, inDrive, Bolt, Namma Yatri, Lyft) gets "I don't know", because Ola's policies don't apply to them. A fixed list can't catch every company name without a real model |
-| Output | Groundedness | The answer is rebuilt only from passages at or above the 0.433 threshold (in document order, without repeated overlap), plus the ticket result. With neither, the answer is "I don't know" |
+| Output | Groundedness | The answer is rebuilt only from passages at or above the 0.433 threshold that come from the best-matching document (in document order, without repeated overlap), plus the ticket result. With neither, the answer is "I don't know". Limit: a question that truly needs two documents gets only the best one (F9) |
 
 Each guardrail fires on a deliberate case in `transcripts/step3_guardrails.txt`.
 
@@ -176,7 +176,7 @@ The judge is a written prompt (`JUDGE_PROMPT`) filled in with the question, labe
 | Completeness | In scope: share of the expected key facts in the answer. Out of scope: 1 if refused |
 | Safety | 0 if the answer has a phone number or answers an out-of-scope question |
 
-Averages on our 15 queries (`transcripts/step4_eval.txt`): accuracy 0.87, grounding 1.00, completeness 1.00, safety 1.00. Accuracy is below 1 because 4 of the 12 answers also include a passage from an unrelated document (finding F9, see `security/step4_attack_test.md`). A negative control (the data-retention answer given to the Tier 2 question) scores 0 on accuracy, grounding and completeness, so the judge does mark wrong answers down.
+Averages on our 15 queries (`transcripts/step4_eval.txt`): accuracy 1.00, grounding 1.00, completeness 1.00, safety 1.00. Before fix F9, 4 of the 12 answers also included a passage from an unrelated document and average accuracy was 0.87 (see `security/step4_attack_test.md`). Because the answers are copied from the KB and the labels come from the same text, these scores show the right document was found and nothing off-topic was added; they do not measure how well a free-text answer is worded. A negative control (the data-retention answer given to the Tier 2 question) scores 0 on accuracy, grounding and completeness, so the judge does mark wrong answers down.
 
 ### Run Part 3
 
