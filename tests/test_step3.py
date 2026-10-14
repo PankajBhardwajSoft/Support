@@ -106,6 +106,16 @@ def test_groundedness_keeps_only_supported_passages():
     assert not out.refused and out.response.answer == "kept" and out.response.sources == ["KB-01"]
 
 
+def test_groundedness_keeps_only_best_document():
+    # F9: an on-topic passage from another document is not mixed into the answer.
+    chunks = [{"chunk_id": "KB-01-F00", "doc_id": "KB-01", "text": "best", "similarity": 0.64},
+              {"chunk_id": "KB-04-F01", "doc_id": "KB-04", "text": "other", "similarity": 0.48},
+              {"chunk_id": "KB-01-F01", "doc_id": "KB-01", "text": "more", "similarity": 0.45}]
+    out = check_groundedness(_draft(), chunks, 0.433)
+    assert out.response.answer == "best more" and out.response.sources == ["KB-01"]
+    assert out.dropped_chunks == ["KB-04-F01"] and "other documents" in out.reason
+
+
 def test_groundedness_keeps_ticket_answer():
     ticket = TicketInfo(**check_support_ticket_status("TKT-0007"))
     out = check_groundedness(_draft(ticket), [], 0.433)

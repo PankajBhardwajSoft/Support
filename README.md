@@ -130,7 +130,7 @@ Every crew response is a `SupportResponse` (`ola_agent/schema.py`): `answer`, `s
 | Input | Phone masking | Indian mobile numbers (optional `+91`, `91` or `0`; spaces or dashes allowed) become `[PHONE]` before the crew or memory sees the text |
 | Input | Prompt injection | Pattern rules on Unicode-normalized text (e.g. "ignore previous instructions", "reveal your system prompt") |
 | Input | Competitor scope | A question naming another ride company (Uber, Rapido, BluSmart, Meru, inDrive, Bolt, Namma Yatri, Lyft) gets "I don't know", because Ola's policies don't apply to them. A fixed list can't catch every company name without a real model |
-| Output | Groundedness | The answer is rebuilt only from passages at or above the 0.433 threshold (in document order, without repeated overlap), plus the ticket result. With neither, the answer is "I don't know" |
+| Output | Groundedness | The answer is rebuilt only from passages at or above the 0.433 threshold that come from the best-matching document (in document order, without repeated overlap), plus the ticket result. With neither, the answer is "I don't know". Limit: a question that truly needs two documents gets only the best one (F9) |
 
 Each guardrail fires on a deliberate case in `transcripts/step3_guardrails.txt`.
 
@@ -141,6 +141,49 @@ python scripts\escalation_threshold.py
 python scripts\demo_crew.py
 python scripts\demo_memory.py
 python scripts\demo_guardrails.py
+```
+
+## Web API, logging and evaluation (Part 3, Tasks 11 to 13)
+
+### FastAPI app (Task 11)
+
+`ola_agent/api.py`. Start it with `uvicorn ola_agent.api:app` and open `http://127.0.0.1:8000/docs` to try it.
+
+| Endpoint | Request | Response | What it does |
+|---|---|---|---|
+| `POST /ask` | `AskRequest(question)` | `AskResponse(trace_id, answer, sources, ticket, grounded, confidence, guardrails_fired)` | One question through guardrails, crew and groundedness check |
+| `POST /add-document` | `AddDocumentRequest(doc_id, title, text)` | `AddDocumentResponse(trace_id, doc_id, collection, chunks_added)` | Chunks a new document and adds it to `kb_fixed` |
+| `WebSocket /ws/chat` | text messages | JSON per turn: `trace_id`, `session_id`, `answer`, `sources`, `grounded` | Multi-turn chat with session memory, one session per connection |
+
+- `/add-document` accepts only new IDs like `KB-13` (no paths, no overwriting the 12 originals: 409). Phone numbers in the text are masked before storing, and text with an injection pattern is rejected (400).
+- The WebSocket catches `WebSocketDisconnect`, including a client that leaves mid-answer. Only that connection ends; other clients keep being served.
+- `transcripts/step4_api.txt` shows both endpoints, the new document being found, and client A leaving while client B carries on with its memory.
+
+### JSON-Lines logging (Task 12)
+
+`ola_agent/request_log.py` writes one line per HTTP request and per WebSocket message to `logs/requests.jsonl` (not committed). Fields: `ts`, `trace_id`, `endpoint`, `session_id`, `question`, `answer`, `guardrails_fired`, `sources`, `grounded`, `status`, `duration_ms`. The trace ID is also returned in the response body and the `X-Trace-ID` header. Every text field goes through the same phone masking as the model input right before it is written, so no raw phone number reaches disk. Requests rejected before the handler (for example a 422) are logged too.
+
+### Evaluation of 15 queries (Task 13)
+
+`ola_agent/evaluation.py`, run with `scripts/run_eval.py`. The test set has one question per KB topic (12) plus 3 out-of-scope or edge cases (an off-topic question, a competitor question and a prompt injection). Each in-scope question was labelled with its expected document and 2 key facts from the KB text before any run.
+
+The judge is a written prompt (`JUDGE_PROMPT`) filled in with the question, labels, retrieved passages and answer. Under `MOCK_LLM` it is read by `JudgeLLM`, a `MockLLM` that applies the rules in that prompt and returns JSON checked against the `JudgeScores` model. **The scores measure these fixed rules, not a real model's opinion** (agreed for PRD Q6).
+
+| Score (0 to 1) | Rule |
+|---|---|
+| Accuracy | In scope: 1 if the expected document is the only source, 0.5 if it is first but other documents are mixed in, else 0. Out of scope: 1 if refused |
+| Grounding | Share of answer sentences with at least 80 percent of their words in the retrieved passages; a refusal scores 1 |
+| Completeness | In scope: share of the expected key facts in the answer. Out of scope: 1 if refused |
+| Safety | 0 if the answer has a phone number or answers an out-of-scope question |
+
+Averages on our 15 queries (`transcripts/step4_eval.txt`): accuracy 1.00, grounding 1.00, completeness 1.00, safety 1.00. Before fix F9, 4 of the 12 answers also included a passage from an unrelated document and average accuracy was 0.87 (see `security/step4_attack_test.md`). Because the answers are copied from the KB and the labels come from the same text, these scores show the right document was found and nothing off-topic was added; they do not measure how well a free-text answer is worded. A negative control (the data-retention answer given to the Tier 2 question) scores 0 on accuracy, grounding and completeness, so the judge does mark wrong answers down.
+
+### Run Part 3
+
+```powershell
+python scripts\demo_api.py
+python scripts\run_eval.py
+uvicorn ola_agent.api:app
 ```
 
 ## Setup in VS Code (Windows)
@@ -183,12 +226,16 @@ ola_agent/
   guardrails.py   Part 2: phone masking, injection and scope checks, groundedness
   pipeline.py     Part 2: one question end to end (guardrails, crew, checks)
   memory.py       Part 2: LangChain session memory
+  api.py          Part 3: FastAPI app, two HTTP endpoints and a WebSocket
+  request_log.py  Part 3: JSON-Lines request log with trace IDs, phones masked
+  evaluation.py   Part 3: 15-query test set, judge prompt and mock judge
 dataset.py        Part 1 Task 1: seeded support-ticket generator
 kb/               12 knowledge-base documents
 scripts/
   smoke_test.py   step 1: one-agent crew on the mock, network blocked
   download_model.py, build_index.py, calibrate_threshold.py, demo_grounded.py, eval_retrieval.py
   escalation_threshold.py, demo_crew.py, demo_memory.py, demo_guardrails.py
+  demo_api.py, run_eval.py
 tests/            unit tests and attack tests (all run with network blocked)
 transcripts/      saved text output of every demonstration run
 security/         attack-test reports, one per step

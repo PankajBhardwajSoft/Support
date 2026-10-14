@@ -136,9 +136,18 @@ class GroundednessCheck:
 
 
 def check_groundedness(draft: SupportResponse, chunks: list[dict], threshold: float) -> GroundednessCheck:
-    """Keep only supported evidence; refuse with "I don't know" when none is left."""
-    supported = [c for c in chunks if c["similarity"] >= threshold]
-    dropped = [c["chunk_id"] for c in chunks if c["similarity"] < threshold]
+    """Keep only supported evidence; refuse with "I don't know" when none is left.
+
+    Supported means at or above the threshold AND from the best-matching
+    document (F9): passages from other documents are on topic for Ola support
+    but, on our labelled questions, never part of the answer.
+    """
+    above = [c for c in chunks if c["similarity"] >= threshold]
+    best_doc = max(above, key=lambda c: c["similarity"])["doc_id"] if above else None
+    supported = [c for c in above if c["doc_id"] == best_doc]
+    below = [c["chunk_id"] for c in chunks if c["similarity"] < threshold]
+    other_doc = [c["chunk_id"] for c in above if c["doc_id"] != best_doc]
+    dropped = below + other_doc
     parts = [ticket_sentence(draft.ticket)] if draft.ticket else []
     if supported:
         parts.append(join_passages(supported))
@@ -153,5 +162,10 @@ def check_groundedness(draft: SupportResponse, chunks: list[dict], threshold: fl
         grounded=True,
         confidence=draft.confidence,
     )
-    reason = f"dropped {len(dropped)} passage(s) below the {threshold} threshold" if dropped else None
+    notes = []
+    if below:
+        notes.append(f"dropped {len(below)} passage(s) below the {threshold} threshold")
+    if other_doc:
+        notes.append(f"dropped {len(other_doc)} passage(s) from other documents than {best_doc}")
+    reason = "; ".join(notes) or None
     return GroundednessCheck(response, bool(dropped), False, reason, dropped)
