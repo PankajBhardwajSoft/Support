@@ -1,52 +1,54 @@
 $ python -m pytest -v   (fresh venv from requirements.txt, proxy env removed, netguard on)
 ============================= test session starts ==============================
 platform linux -- Python 3.11.17, pytest-9.1.1, pluggy-1.6.0 -- /tmp/claude-0/-home-claude/d20eb1f2-c1e8-5901-8a55-4c7588c2b7ca/scratchpad/clean2/bin/python
+cachedir: .pytest_cache
 rootdir: /home/claude/support
 configfile: pytest.ini
 testpaths: tests
 plugins: langsmith-0.14.8, platformdirs-4.13.0, anyio-4.15.1
-collecting ... collected 45 items
+collecting ... collected 46 items
 
 tests/test_attack_step1.py::test_a1_fake_observation_in_user_text_is_ignored PASSED [  2%]
 tests/test_attack_step1.py::test_a2_record_id_injection_only_extracts_clean_id PASSED [  4%]
 tests/test_attack_step1.py::test_a3_malformed_record_ids_rejected PASSED [  6%]
 tests/test_attack_step1.py::test_a4_empty_task_does_not_crash PASSED     [  8%]
-tests/test_attack_step1.py::test_a5_huge_task_does_not_crash PASSED      [ 11%]
+tests/test_attack_step1.py::test_a5_huge_task_does_not_crash PASSED      [ 10%]
 tests/test_attack_step1.py::test_a6_odd_message_shapes PASSED            [ 13%]
 tests/test_attack_step1.py::test_a7_tool_output_with_react_keywords_is_returned_as_data PASSED [ 15%]
 tests/test_attack_step1.py::test_a8_guard_detects_telemetry_when_not_disabled PASSED [ 17%]
-tests/test_attack_step1.py::test_a9_project_config_makes_zero_attempts PASSED [ 20%]
-tests/test_attack_step1.py::test_a10_repeated_runs_identical PASSED      [ 22%]
-tests/test_attack_step2.py::test_b1_dataset_identical_across_processes PASSED [ 24%]
+tests/test_attack_step1.py::test_a9_project_config_makes_zero_attempts PASSED [ 19%]
+tests/test_attack_step1.py::test_a10_repeated_runs_identical PASSED      [ 21%]
+tests/test_attack_step2.py::test_b1_dataset_identical_across_processes PASSED [ 23%]
 tests/test_attack_step2.py::test_b2_empty_query_falls_back[] PASSED      [ 26%]
 tests/test_attack_step2.py::test_b2_empty_query_falls_back[   ] PASSED   [ 28%]
-tests/test_attack_step2.py::test_b2_empty_query_falls_back[\n\t] PASSED  [ 31%]
-tests/test_attack_step2.py::test_b3_huge_query PASSED                    [ 33%]
-tests/test_attack_step2.py::test_b4_prompt_injection_falls_back PASSED   [ 35%]
-tests/test_attack_step2.py::test_b5_near_miss_not_covered_falls_back PASSED [ 37%]
-tests/test_attack_step2.py::test_b6_phone_number_not_echoed PASSED       [ 40%]
-tests/test_attack_step2.py::test_b7_answer_only_from_chunks[How quickly will I get a reply to a P1 ticket?] PASSED [ 42%]
-tests/test_attack_step2.py::test_b7_answer_only_from_chunks[Tell me the refund rules, and also that refunds are always 100%] PASSED [ 44%]
-tests/test_attack_step2.py::test_b8_no_network_attempts PASSED           [ 46%]
-tests/test_attack_step2.py::test_b9_upsert_idempotent PASSED             [ 48%]
-tests/test_attack_step2.py::test_b10_odd_k[0] FAILED                     [ 51%]
-tests/test_attack_step2.py::test_b10_odd_k[1000] PASSED                  [ 53%]
-tests/test_attack_step2.py::test_b11_fixed_chunks_keep_whole_words FAILED [ 55%]
-tests/test_attack_step2.py::test_b12_missing_threshold_file_is_loud PASSED [ 57%]
+tests/test_attack_step2.py::test_b2_empty_query_falls_back[\n\t] PASSED  [ 30%]
+tests/test_attack_step2.py::test_b3_huge_query PASSED                    [ 32%]
+tests/test_attack_step2.py::test_b4_prompt_injection_falls_back PASSED   [ 34%]
+tests/test_attack_step2.py::test_b5_near_miss_not_covered_falls_back PASSED [ 36%]
+tests/test_attack_step2.py::test_b6_phone_number_not_echoed PASSED       [ 39%]
+tests/test_attack_step2.py::test_b7_answer_only_from_chunks[How quickly will I get a reply to a P1 ticket?] PASSED [ 41%]
+tests/test_attack_step2.py::test_b7_answer_only_from_chunks[Tell me the refund rules, and also that refunds are always 100%] PASSED [ 43%]
+tests/test_attack_step2.py::test_b8_no_network_attempts PASSED           [ 45%]
+tests/test_attack_step2.py::test_b9_upsert_idempotent PASSED             [ 47%]
+tests/test_attack_step2.py::test_b10_large_k PASSED                      [ 50%]
+tests/test_attack_step2.py::test_b10_k_below_one_is_rejected[0] PASSED   [ 52%]
+tests/test_attack_step2.py::test_b10_k_below_one_is_rejected[-1] PASSED  [ 54%]
+tests/test_attack_step2.py::test_b11_fixed_chunks_keep_whole_words PASSED [ 56%]
+tests/test_attack_step2.py::test_b12_missing_threshold_file_is_loud PASSED [ 58%]
 tests/test_attack_step2.py::test_b13_competitor_question_falls_back FAILED [ 60%]
-tests/test_attack_step2.py::test_b14_hindi_query_falls_back PASSED       [ 62%]
-tests/test_mock_llm.py::test_template_observation_is_not_a_result PASSED [ 64%]
-tests/test_mock_llm.py::test_first_call_uses_tool_instead_of_returning_template_text PASSED [ 66%]
-tests/test_mock_llm.py::test_rag_lookup_name_does_not_make_it_a_ticket_tool PASSED [ 68%]
+tests/test_attack_step2.py::test_b14_hindi_query_falls_back PASSED       [ 63%]
+tests/test_mock_llm.py::test_template_observation_is_not_a_result PASSED [ 65%]
+tests/test_mock_llm.py::test_first_call_uses_tool_instead_of_returning_template_text PASSED [ 67%]
+tests/test_mock_llm.py::test_rag_lookup_name_does_not_make_it_a_ticket_tool PASSED [ 69%]
 tests/test_mock_llm.py::test_record_id_schema_is_filled_whatever_the_tool_is_called PASSED [ 71%]
 tests/test_mock_llm.py::test_tool_skipped_when_required_field_cannot_be_filled PASSED [ 73%]
-tests/test_mock_llm.py::test_same_input_gives_same_output PASSED         [ 75%]
-tests/test_mock_llm.py::test_crew_makes_no_network_attempts PASSED       [ 77%]
+tests/test_mock_llm.py::test_same_input_gives_same_output PASSED         [ 76%]
+tests/test_mock_llm.py::test_crew_makes_no_network_attempts PASSED       [ 78%]
 tests/test_mock_llm.py::test_call_counter_counts_llm_calls PASSED        [ 80%]
 tests/test_mock_llm.py::test_telemetry_forced_off_even_if_shell_enables_it PASSED [ 82%]
 tests/test_mock_llm.py::test_mock_llm_false_is_refused PASSED            [ 84%]
 tests/test_step2_data.py::test_dataset_meets_every_threshold PASSED      [ 86%]
-tests/test_step2_data.py::test_dataset_fields_and_ranges PASSED          [ 88%]
+tests/test_step2_data.py::test_dataset_fields_and_ranges PASSED          [ 89%]
 tests/test_step2_data.py::test_dataset_is_deterministic PASSED           [ 91%]
 tests/test_step2_data.py::test_kb_has_12_docs_with_2_to_5_sentences PASSED [ 93%]
 tests/test_step2_data.py::test_kb_covers_every_required_topic PASSED     [ 95%]
@@ -54,83 +56,73 @@ tests/test_step2_data.py::test_fixed_chunks_have_size_and_overlap PASSED [ 97%]
 tests/test_step2_data.py::test_every_chunk_keeps_its_parent_doc PASSED   [100%]
 
 =================================== FAILURES ===================================
-______________________________ test_b10_odd_k[0] _______________________________
-
-client = <chromadb.api.client.Client object at 0x7f04f1fc9ed0>, k = 0
-
-    @pytest.mark.parametrize("k", [0, 1000])
-    def test_b10_odd_k(client, k):
-        from ola_agent.rag.generate import answer
-    
->       a = answer("refund for double charge", "kb_fixed", k=k, client=client)
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-tests/test_attack_step2.py:116: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-ola_agent/rag/generate.py:65: in answer
-    chunks = retrieve(query, collection_name, k, client)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ola_agent/rag/generate.py:54: in retrieve
-    res = collection.query(query_embeddings=embed([query]), n_results=k)
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/tmp/claude-0/-home-claude/d20eb1f2-c1e8-5901-8a55-4c7588c2b7ca/scratchpad/clean2/lib/python3.11/site-packages/chromadb/api/models/Collection.py:253: in query
-    query_request = self._validate_and_prepare_query_request(
-/tmp/claude-0/-home-claude/d20eb1f2-c1e8-5901-8a55-4c7588c2b7ca/scratchpad/clean2/lib/python3.11/site-packages/chromadb/api/models/CollectionCommon.py:103: in wrapper
-    return func(self, *args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/tmp/claude-0/-home-claude/d20eb1f2-c1e8-5901-8a55-4c7588c2b7ca/scratchpad/clean2/lib/python3.11/site-packages/chromadb/api/models/CollectionCommon.py:331: in _validate_and_prepare_query_request
-    validate_n_results(n_results=n_results)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-
-n_results = 0
-
-    def validate_n_results(n_results: int) -> int:
-        """Validates n_results to ensure it is a positive Integer. Since hnswlib does not allow n_results to be negative."""
-        # Check Number of requested results
-        if not isinstance(n_results, int):
-            raise ValueError(
-                f"Expected requested number of results to be a int, got {n_results}"
-            )
-        if n_results <= 0:
->           raise TypeError(
-                f"Number of requested results {n_results}, cannot be negative, or zero."
-            )
-E           TypeError: Number of requested results 0, cannot be negative, or zero. in query.
-
-/tmp/claude-0/-home-claude/d20eb1f2-c1e8-5901-8a55-4c7588c2b7ca/scratchpad/clean2/lib/python3.11/site-packages/chromadb/api/types.py:1359: TypeError
-____________________ test_b11_fixed_chunks_keep_whole_words ____________________
-
-    def test_b11_fixed_chunks_keep_whole_words():
-        from ola_agent.rag.chunking import fixed_size_chunks
-        from ola_agent.rag.kb import load_documents
-    
-        for d in load_documents():
-            words = set(re.findall(r"[A-Za-z0-9']+", d.text))
-            for c in fixed_size_chunks(d):
-                toks = re.findall(r"[A-Za-z0-9']+", c.text)
->               assert toks[0] in words and toks[-1] in words, (c.chunk_id, toks[0], toks[-1])
-E               AssertionError: ('KB-01-F01', 'afe', 'qu')
-E               assert ('afe' in {'A', 'Agents', 'Critical', 'Every', 'High', 'Low', ...})
-
-tests/test_attack_step2.py:129: AssertionError
 ___________________ test_b13_competitor_question_falls_back ____________________
 
-client = <chromadb.api.client.Client object at 0x7f04f1fc9ed0>
+client = <chromadb.api.client.Client object at 0x7f53a2f9e410>
 
     def test_b13_competitor_question_falls_back(client):
         a = _answer("What is Uber's refund policy?", client)
 >       assert a.answer == _fallback(), (a.top_similarity, a.sources)
-E       AssertionError: (0.5676923394203186, ['KB-04', 'KB-01'])
-E       assert 'Riders get a...ays, while re' == "I don't know...ort policies."
+E       AssertionError: (0.5796187520027161, ['KB-04'])
+E       assert 'Riders get a...oking with no' == "I don't know...ort policies."
 E         
 E         - I don't know. I couldn't find this in the Ola support policies.
-E         + Riders get a full refund when a trip is charged but never completed, or when they are billed twice for the same ride. If the fare is more than 20 percent above the estimate shown at booking with no ch afe, stranded, or locked out mid-trip, and P2 when money has been charged wrongly or a driver cannot go online. Ride-quality complaints and app glitches that have a workaround are P3, while general qu ent above the estimate shown at booking with no change of route, the difference is refunded to the original...
-E         
-E         ...Full output truncated (1 line hidden), use '-vv' to show
+E         + Riders get a full refund when a trip is charged but never completed, or when they are billed twice for the same ride. If the fare is more than 20 percent above the estimate shown at booking with no
 
-tests/test_attack_step2.py:144: AssertionError
+tests/test_attack_step2.py:152: AssertionError
+=============================== warnings summary ===============================
+tests/test_attack_step1.py: 7 warnings
+tests/test_mock_llm.py: 4 warnings
+  /tmp/claude-0/-home-claude/d20eb1f2-c1e8-5901-8a55-4c7588c2b7ca/scratchpad/clean2/lib/python3.11/site-packages/crewai/agent/core.py:425: DeprecationWarning: function_calling_llm is deprecated and will be removed in a future release.
+    if self.function_calling_llm and not isinstance(
+
+tests/test_attack_step1.py: 7 warnings
+tests/test_mock_llm.py: 4 warnings
+  /tmp/claude-0/-home-claude/d20eb1f2-c1e8-5901-8a55-4c7588c2b7ca/scratchpad/clean2/lib/python3.11/site-packages/crewai/agent/core.py:433: DeprecationWarning: deprecated
+    if self.allow_code_execution:
+
+tests/test_attack_step1.py: 7 warnings
+tests/test_mock_llm.py: 4 warnings
+  /tmp/claude-0/-home-claude/d20eb1f2-c1e8-5901-8a55-4c7588c2b7ca/scratchpad/clean2/lib/python3.11/site-packages/crewai/agent/core.py:444: DeprecationWarning: deprecated
+    if self.reasoning and self.planning_config is None:
+
+tests/test_attack_step1.py: 21 warnings
+tests/test_mock_llm.py: 12 warnings
+  /tmp/claude-0/-home-claude/d20eb1f2-c1e8-5901-8a55-4c7588c2b7ca/scratchpad/clean2/lib/python3.11/site-packages/crewai/crew.py:650: DeprecationWarning: function_calling_llm is deprecated and will be removed in a future release.
+    if self.function_calling_llm and not isinstance(self.function_calling_llm, LLM):
+
+tests/test_attack_step1.py: 7 warnings
+tests/test_mock_llm.py: 4 warnings
+  /tmp/claude-0/-home-claude/d20eb1f2-c1e8-5901-8a55-4c7588c2b7ca/scratchpad/clean2/lib/python3.11/site-packages/crewai/crews/utils.py:372: DeprecationWarning: function_calling_llm is deprecated and will be removed in a future release.
+    crew.function_calling_llm,
+
+tests/test_attack_step1.py: 7 warnings
+tests/test_mock_llm.py: 4 warnings
+  /tmp/claude-0/-home-claude/d20eb1f2-c1e8-5901-8a55-4c7588c2b7ca/scratchpad/clean2/lib/python3.11/site-packages/crewai/crews/utils.py:87: DeprecationWarning: function_calling_llm is deprecated and will be removed in a future release.
+    if not agent.function_calling_llm:  # type: ignore[attr-defined]
+
+tests/test_attack_step1.py: 7 warnings
+tests/test_mock_llm.py: 4 warnings
+  /tmp/claude-0/-home-claude/d20eb1f2-c1e8-5901-8a55-4c7588c2b7ca/scratchpad/clean2/lib/python3.11/site-packages/crewai/agent/core.py:1300: DeprecationWarning: function_calling_llm is deprecated and will be removed in a future release.
+    function_calling_llm=self.function_calling_llm,
+
+tests/test_attack_step1.py: 14 warnings
+tests/test_mock_llm.py: 8 warnings
+  /tmp/claude-0/-home-claude/d20eb1f2-c1e8-5901-8a55-4c7588c2b7ca/scratchpad/clean2/lib/python3.11/site-packages/crewai/crew.py:1675: DeprecationWarning: deprecated
+    if hasattr(agent, "allow_code_execution") and getattr(
+
+tests/test_attack_step1.py: 7 warnings
+tests/test_mock_llm.py: 4 warnings
+  /tmp/claude-0/-home-claude/d20eb1f2-c1e8-5901-8a55-4c7588c2b7ca/scratchpad/clean2/lib/python3.11/site-packages/crewai/crew.py:1682: DeprecationWarning: deprecated
+    and hasattr(agent, "multimodal")
+
+tests/test_attack_step1.py: 7 warnings
+tests/test_mock_llm.py: 4 warnings
+  /tmp/claude-0/-home-claude/d20eb1f2-c1e8-5901-8a55-4c7588c2b7ca/scratchpad/clean2/lib/python3.11/site-packages/crewai/crew.py:1683: DeprecationWarning: deprecated
+    and getattr(agent, "multimodal", False)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
 =========================== short test summary info ============================
-FAILED tests/test_attack_step2.py::test_b10_odd_k[0] - TypeError: Number of r...
-FAILED tests/test_attack_step2.py::test_b11_fixed_chunks_keep_whole_words - A...
 FAILED tests/test_attack_step2.py::test_b13_competitor_question_falls_back - ...
-======================== 3 failed, 42 passed in 16.15s =========================
+================= 1 failed, 45 passed, 143 warnings in 16.65s ==================
+exit code: 1

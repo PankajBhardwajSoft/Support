@@ -1,19 +1,19 @@
 {
   "kb_fixed": {
-    "threshold": 0.377,
-    "lowest_in_scope": 0.453,
-    "highest_out_of_scope": 0.301,
+    "threshold": 0.433,
+    "lowest_in_scope": 0.489,
+    "highest_out_of_scope": 0.378,
     "in_scope": {
-      "How quickly will I get a reply to a P1 ticket?": 0.679,
-      "I was charged twice for one ride, can I get a refund?": 0.662,
+      "How quickly will I get a reply to a P1 ticket?": 0.674,
+      "I was charged twice for one ride, can I get a refund?": 0.681,
       "When does a ticket get escalated to Tier 2?": 0.711,
-      "How long do you keep my support chat history?": 0.683,
-      "What compensation do I get if my driver is very late?": 0.453
+      "How long do you keep my support chat history?": 0.676,
+      "What compensation do I get if my driver is very late?": 0.489
     },
     "out_of_scope": {
-      "What is the capital of France?": 0.132,
-      "Can you recommend a good biryani recipe?": 0.12,
-      "How do I reset my Netflix password?": 0.301
+      "What is the capital of France?": 0.117,
+      "Can you recommend a good biryani recipe?": 0.134,
+      "How do I reset my Netflix password?": 0.378
     }
   },
   "kb_sentence": {

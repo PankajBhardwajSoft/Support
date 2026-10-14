@@ -7,7 +7,6 @@ in ./models (run scripts/download_model.py once).
 import hashlib
 import json
 import os
-import re
 import subprocess
 import sys
 import tempfile
@@ -108,13 +107,20 @@ def test_b9_upsert_idempotent():
     assert {n: get_collection(n, c).count() for n in first} == first
 
 
-# B10: k=0 or a k bigger than the collection is handled without a crash.
-@pytest.mark.parametrize("k", [0, 1000])
-def test_b10_odd_k(client, k):
+# B10: a k bigger than the collection works; k < 1 is rejected with a clear error (F4).
+def test_b10_large_k(client):
     from ola_agent.rag.generate import answer
 
-    a = answer("refund for double charge", "kb_fixed", k=k, client=client)
+    a = answer("refund for double charge", "kb_fixed", k=1000, client=client)
     assert isinstance(a.answer, str)
+
+
+@pytest.mark.parametrize("k", [0, -1])
+def test_b10_k_below_one_is_rejected(client, k):
+    from ola_agent.rag.generate import answer
+
+    with pytest.raises(ValueError, match="k must be at least 1"):
+        answer("refund for double charge", "kb_fixed", k=k, client=client)
 
 
 # B11: fixed-size chunks never cut a word in half (answer readability).
@@ -123,10 +129,12 @@ def test_b11_fixed_chunks_keep_whole_words():
     from ola_agent.rag.kb import load_documents
 
     for d in load_documents():
-        words = set(re.findall(r"[A-Za-z0-9']+", d.text))
         for c in fixed_size_chunks(d):
-            toks = re.findall(r"[A-Za-z0-9']+", c.text)
-            assert toks[0] in words and toks[-1] in words, (c.chunk_id, toks[0], toks[-1])
+            at = d.text.find(c.text)
+            end = at + len(c.text)
+            assert at != -1, c.chunk_id
+            assert at == 0 or d.text[at - 1].isspace(), (c.chunk_id, "starts mid-word")
+            assert end == len(d.text) or d.text[end].isspace(), (c.chunk_id, "ends mid-word")
 
 
 # B12: the thresholds file cannot be missing silently.

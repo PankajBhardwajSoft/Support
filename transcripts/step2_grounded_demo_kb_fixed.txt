@@ -1,38 +1,38 @@
 $ python scripts/demo_grounded.py kb_fixed   (MOCK_LLM, network blocked)
-Collection: kb_fixed   threshold: 0.377   MOCK_LLM: answers are built only from retrieved chunks
+Collection: kb_fixed   threshold: 0.433   MOCK_LLM: answers are built only from retrieved chunks
 
 Q: How quickly will I get a reply to a P1 ticket?
-   top-1 similarity 0.679 -> grounded
-   sources: KB-02
-   A: Our service-level agreement sets both a first-response time and a resolution target for each priority. P1 tickets get a first response within 15 minutes and a resolution target of 4 hours, and P2 tick es and a resolution target of 4 hours, and P2 tickets get a response within 1 hour and resolution within 24 hours. P3 tickets get a response within 4 hours and resolution within 72 hours, and P4 ticke hours and resolution within 72 hours, and P4 tickets get a response within 24 hours and resolution within 7 days. The SLA clock pauses only while we are waiting for information that the customer has b
+   top-1 similarity 0.674 -> grounded
+   sources: KB-02, KB-12
+   A: Our service-level agreement sets both a first-response time and a resolution target for each priority. P1 tickets get a first response within 15 minutes and a resolution target of 4 hours, and P2 and a resolution target of 4 hours, and P2 tickets get a response within 1 hour and resolution within 24 hours. P3 tickets get a response within 4 hours and resolution within 72 hours, and P4 can ask for a copy of their ticket data, and the request must be fulfilled within 30 days.
    expected grounded answer: PASS
 
 Q: I was charged twice for one ride, can I get a refund?
-   top-1 similarity 0.662 -> grounded
+   top-1 similarity 0.681 -> grounded
    sources: KB-04
-   A: Riders get a full refund when a trip is charged but never completed, or when they are billed twice for the same ride. If the fare is more than 20 percent above the estimate shown at booking with no ch
+   A: Riders get a full refund when a trip is charged but never completed, or when they are billed twice for the same ride. If the fare is more than 20 percent above the estimate shown at booking with no
    expected grounded answer: PASS
 
 Q: When does a ticket get escalated to Tier 2?
    top-1 similarity 0.711 -> grounded
    sources: KB-03
-   A: A ticket moves to Tier 2 support when it breaches 75 percent of its SLA resolution target or when the frontline agent cannot resolve it. Tier 2 hands the ticket to the city operations manager if it is ncidents and any legal threat are escalated straight to the Trust and Safety team, whatever the ticket's age. Every escalation must record the reason and the name of the person who now owns the ticket the ticket to the city operations manager if it is still open after a further 24 hours, or immediately if it involves rider or driver safety. Safety incidents and any legal threat are escalated straig
+   A: A ticket moves to Tier 2 support when it breaches 75 percent of its SLA resolution target or when the frontline agent cannot resolve it. Tier 2 hands the ticket to the city operations manager if it is and any legal threat are escalated straight to the Trust and Safety team, whatever the ticket's age. Every escalation must record the reason and the name of the person who now owns the the ticket to the city operations manager if it is still open after a further 24 hours, or immediately if it involves rider or driver safety. Safety incidents and any legal threat are escalated
    expected grounded answer: PASS
 
 Q: How long do you keep my support chat history?
-   top-1 similarity 0.683 -> grounded
-   sources: KB-12, KB-07
-   A: Support tickets and their chat history are kept for 24 months after the ticket is closed, and are then deleted. Tickets linked to a safety incident, legal claim or payment dispute are kept for 7 years egal claim or payment dispute are kept for 7 years. Recorded support calls are deleted after 90 days unless they are attached to one of those cases. Customers can ask for a copy of their ticket data, and must record what was done to stop it happening again. Customers with a repeat complaint get a call-back offer rather than chat-only follow-up.
+   top-1 similarity 0.676 -> grounded
+   sources: KB-12
+   A: Support tickets and their chat history are kept for 24 months after the ticket is closed, and are then deleted. Tickets linked to a safety incident, legal claim or payment dispute are kept for 7 claim or payment dispute are kept for 7 years. Recorded support calls are deleted after 90 days unless they are attached to one of those cases. Customers can ask for a copy of their ticket data,
    expected grounded answer: PASS
 
 Q: What compensation do I get if my driver is very late?
-   top-1 similarity 0.453 -> grounded
+   top-1 similarity 0.489 -> grounded
    sources: KB-08
-   A: e when a driver arrives more than 15 minutes after the confirmed pickup time. Credits can also be given when we miss a P1 or P2 SLA target, up to a limit of 500 rupees per ticket. Service credits expi Service credits are non-cash credits added to a customer's Ola wallet to make up for a service failure. A rider gets a credit of 10 percent of the fare when a driver arrives more than 15 minutes after
+   A: when a driver arrives more than 15 minutes after the confirmed pickup time. Credits can also be given when we miss a P1 or P2 SLA target, up to a limit of 500 rupees per ticket. Service credits
    expected grounded answer: PASS
 
 Q: What is the capital of France?
-   top-1 similarity 0.132 -> FALLBACK
+   top-1 similarity 0.117 -> FALLBACK
    sources: -
    A: I don't know. I couldn't find this in the Ola support policies.
    expected fallback: PASS

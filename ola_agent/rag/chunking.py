@@ -20,15 +20,35 @@ class Chunk:
     text: str
 
 
+def _snap_to_words(text: str, start: int, end: int) -> tuple[int, int]:
+    """Shrink [start, end) so it neither starts nor ends inside a word.
+
+    If the window has no space to snap to (one very long word), it is left as is.
+    """
+    if start > 0 and not text[start - 1].isspace():
+        space = text.find(" ", start, end)
+        if space != -1:
+            start = space + 1
+    if end < len(text) and not text[end].isspace():
+        space = text.rfind(" ", start, end)
+        if space != -1:
+            end = space
+    return start, end
+
+
 def fixed_size_chunks(doc: Document, size: int = FIXED_CHUNK_SIZE, overlap: int = FIXED_CHUNK_OVERLAP) -> list[Chunk]:
-    """Character windows of `size`, each starting `size - overlap` after the last."""
+    """Character windows of at most `size`, each starting `size - overlap` after the last.
+
+    Window edges are pulled in to the nearest space so no word is cut in half.
+    """
     if not 0 <= overlap < size:
         raise ValueError("overlap must be >= 0 and smaller than size")
     step = size - overlap
     chunks = []
     start = 0
     while True:
-        piece = doc.text[start:start + size].strip()
+        lo, hi = _snap_to_words(doc.text, start, min(start + size, len(doc.text)))
+        piece = doc.text[lo:hi].strip()
         if piece:
             chunks.append(Chunk(f"{doc.doc_id}-F{len(chunks):02d}", doc.doc_id, piece))
         if start + size >= len(doc.text):

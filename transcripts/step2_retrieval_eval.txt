@@ -1,12 +1,12 @@
 $ python scripts/eval_retrieval.py   (MOCK_LLM, network blocked)
 === Collection 'kb_fixed' (top-3 chunks -> parent docs, deduplicated) ===
 Q: How quickly will I get a reply to a P1 ticket?
-   chunks: KB-02-F00, KB-02-F01, KB-02-F02
-   retrieved docs: ['KB-02']   relevant: ['KB-02']   hits: ['KB-02']
-   precision = 1/1 = 1.000   recall = 1/1 = 1.000
+   chunks: KB-02-F00, KB-02-F01, KB-12-F02
+   retrieved docs: ['KB-02', 'KB-12']   relevant: ['KB-02']   hits: ['KB-02']
+   precision = 1/2 = 0.500   recall = 1/1 = 1.000
 Q: I was charged twice for one ride, can I get a refund?
-   chunks: KB-04-F00, KB-04-F01, KB-08-F00
-   retrieved docs: ['KB-04', 'KB-08']   relevant: ['KB-04']   hits: ['KB-04']
+   chunks: KB-04-F00, KB-01-F01, KB-04-F01
+   retrieved docs: ['KB-04', 'KB-01']   relevant: ['KB-04']   hits: ['KB-04']
    precision = 1/2 = 0.500   recall = 1/1 = 1.000
 Q: When does a ticket get escalated to Tier 2?
    chunks: KB-03-F00, KB-03-F02, KB-03-F01
@@ -20,7 +20,7 @@ Q: What compensation do I get if my driver is very late?
    chunks: KB-08-F01, KB-08-F00, KB-02-F02
    retrieved docs: ['KB-08', 'KB-02']   relevant: ['KB-04', 'KB-08']   hits: ['KB-08']
    precision = 1/2 = 0.500   recall = 1/2 = 0.500
-   mean precision = (1.000 + 0.500 + 1.000 + 0.500 + 0.500) / 5 = 0.700
+   mean precision = (0.500 + 0.500 + 1.000 + 0.500 + 0.500) / 5 = 0.600
    mean recall    = (1.000 + 1.000 + 1.000 + 1.000 + 0.500) / 5 = 0.900
 
 === Collection 'kb_sentence' (top-3 chunks -> parent docs, deduplicated) ===
@@ -48,6 +48,6 @@ Q: What compensation do I get if my driver is very late?
    mean recall    = (1.000 + 1.000 + 1.000 + 1.000 + 0.500) / 5 = 0.900
 
 Summary:
-  kb_fixed     mean precision 0.700   mean recall 0.900
+  kb_fixed     mean precision 0.600   mean recall 0.900
   kb_sentence  mean precision 0.567   mean recall 0.900
 exit code: 0

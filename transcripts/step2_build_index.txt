@@ -6,8 +6,8 @@ Upserted 48 chunks into collection 'kb_sentence'
 
 Sample query: 'What is the refund policy for a double charge?'
   [kb_fixed]
-    0.564  KB-04-F00  Riders get a full refund when a trip is charged but never completed, or when the
-    0.416  KB-04-F01  ent above the estimate shown at booking with no change of route, the difference 
+    0.572  KB-04-F00  Riders get a full refund when a trip is charged but never completed, or when the
+    0.382  KB-04-F01  above the estimate shown at booking with no change of route, the difference is r
     0.340  KB-07-F00  A complaint counts as a repeat when the same customer raises the same issue thre
   [kb_sentence]
     0.581  KB-04-S00  Riders get a full refund when a trip is charged but never completed, or when the

@@ -50,6 +50,8 @@ class GroundedAnswer:
 
 
 def retrieve(query: str, collection_name: str, k: int = TOP_K, client=None) -> list[Retrieved]:
+    if k < 1:
+        raise ValueError("k must be at least 1")
     collection = get_collection(collection_name, client)
     res = collection.query(query_embeddings=embed([query]), n_results=k)
     return [

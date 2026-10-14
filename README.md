@@ -33,7 +33,7 @@ Result: Technical Issue 15, Billing 11, Product Defect 11, General Inquiry 7, Ac
 ## Knowledge base and retrieval (Part 1, Tasks 2 to 5)
 
 - `kb/`: 12 documents, one per required topic, 4 sentences each, written for this project with made-up rules.
-- Two chunking strategies (`ola_agent/rag/chunking.py`): fixed-size 200 characters with 50 overlap (38 chunks) and one chunk per sentence (48 chunks).
+- Two chunking strategies (`ola_agent/rag/chunking.py`): fixed-size windows of up to 200 characters with 50 overlap, edges moved to the nearest space so no word is cut (38 chunks) and one chunk per sentence (48 chunks).
 - Embeddings: `sentence-transformers/all-MiniLM-L6-v2`, run locally on CPU, normalized.
 - Each strategy has its own ChromaDB collection, `kb_fixed` and `kb_sentence`, cosine distance, written with `collection.upsert()`.
 
@@ -43,17 +43,17 @@ Top-1 cosine similarity from `scripts/calibrate_threshold.py` (`transcripts/step
 
 | Query | Type | kb_fixed | kb_sentence |
 |---|---|---|---|
-| How quickly will I get a reply to a P1 ticket? | in-scope | 0.679 | 0.748 |
-| I was charged twice for one ride, can I get a refund? | in-scope | 0.662 | 0.719 |
+| How quickly will I get a reply to a P1 ticket? | in-scope | 0.674 | 0.748 |
+| I was charged twice for one ride, can I get a refund? | in-scope | 0.681 | 0.719 |
 | When does a ticket get escalated to Tier 2? | in-scope | 0.711 | 0.756 |
-| How long do you keep my support chat history? | in-scope | 0.683 | 0.751 |
-| What compensation do I get if my driver is very late? | in-scope | 0.453 | 0.472 |
-| What is the capital of France? | out-of-scope | 0.132 | 0.135 |
-| Can you recommend a good biryani recipe? | out-of-scope | 0.120 | 0.118 |
-| How do I reset my Netflix password? | out-of-scope | 0.301 | 0.310 |
-| **Threshold** = midpoint of lowest in-scope and highest out-of-scope | | **0.377** | **0.391** |
+| How long do you keep my support chat history? | in-scope | 0.676 | 0.751 |
+| What compensation do I get if my driver is very late? | in-scope | 0.489 | 0.472 |
+| What is the capital of France? | out-of-scope | 0.117 | 0.135 |
+| Can you recommend a good biryani recipe? | out-of-scope | 0.134 | 0.118 |
+| How do I reset my Netflix password? | out-of-scope | 0.378 | 0.310 |
+| **Threshold** = midpoint of lowest in-scope and highest out-of-scope | | **0.433** | **0.391** |
 
-Both thresholds sit well below the common 0.5 to 0.7 tutorial presets: a 0.5 preset would have wrongly refused the in-scope late-driver question. Thresholds are saved in `rag_thresholds.json`. The demo (`transcripts/step2_grounded_demo_kb_fixed.txt`) answers all 5 in-scope queries from retrieved text only and returns the fallback for "What is the capital of France?" (0.132).
+Both thresholds sit well below the common 0.5 to 0.7 tutorial presets: a 0.5 preset would have wrongly refused the in-scope late-driver question. Thresholds are saved in `rag_thresholds.json`. The demo (`transcripts/step2_grounded_demo_kb_fixed.txt`) answers all 5 in-scope queries from retrieved text only and returns the fallback for "What is the capital of France?" (0.117).
 
 ### Chunking comparison and recommendation (Task 5)
 
@@ -61,10 +61,10 @@ Document-level precision and recall over the same 5 queries, top-3 chunks mapped
 
 | Collection | Mean precision | Mean recall |
 |---|---|---|
-| `kb_fixed` | (1.000 + 0.500 + 1.000 + 0.500 + 0.500) / 5 = **0.700** | (1 + 1 + 1 + 1 + 0.5) / 5 = **0.900** |
+| `kb_fixed` | (0.500 + 0.500 + 1.000 + 0.500 + 0.500) / 5 = **0.600** | (1 + 1 + 1 + 1 + 0.5) / 5 = **0.900** |
 | `kb_sentence` | (0.500 + 0.500 + 1.000 + 0.500 + 0.333) / 5 = **0.567** | (1 + 1 + 1 + 1 + 0.5) / 5 = **0.900** |
 
-**Recommendation: deploy `kb_fixed`.** Both strategies reach the same mean recall (0.900), but `kb_fixed` has higher mean precision (0.700 vs 0.567). Its 200-character chunks keep the top-3 results inside the relevant document more often (2 of 5 queries returned only the relevant document, against 1 of 5 for sentence chunks). Caveat: fixed-size chunks currently cut words mid-way (attack-test finding F3, `security/step2_attack_test.md`); if fixing that changes these numbers, this recommendation will be rechecked.
+**Recommendation: deploy `kb_fixed`.** Both strategies reach the same mean recall (0.900), but `kb_fixed` has higher mean precision (0.600 vs 0.567). The difference comes from the late-driver question: its 200-character chunks pull in 1 wrong document there, against 2 for sentence chunks (precision 0.500 vs 0.333); the other 4 queries score the same. The margin is small, so the 15-query evaluation in step 4 will recheck it. These numbers were measured after fix F3 (whole-word chunk edges, `security/step2_attack_test.md`); before it, `kb_fixed` scored 0.700.
 
 ### One-time model download
 

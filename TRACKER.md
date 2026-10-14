@@ -24,9 +24,9 @@ Status values: Not started / In progress / Done / Failed
 |---|---|---|---|---|---|---|
 | 1.1 | `dataset.py` generates >=40 tickets meeting every threshold; design choices in README | Done | `dataset.py` | `transcripts/step2_dataset.txt` | B1 | 50 tickets, seed 42, escalated 26.0% |
 | 1.2 | Knowledge base has >=12 documents covering every required topic | Done | `kb/` | `transcripts/step2_pytest.txt` | | 12 docs, 4 sentences each |
-| 1.3 | Two chunking strategies indexed into two separate ChromaDB collections, both retrieving sensibly | In progress | `ola_agent/rag/chunking.py`, `ola_agent/rag/index.py` | `transcripts/step2_build_index.txt` | B9, B11 | Works; finding F3 (fixed chunks cut words) awaiting approval |
-| 1.4 | Grounded generation on >=5 in-scope queries plus 1 out-of-scope fallback | Done | `ola_agent/rag/generate.py` | `transcripts/step2_calibration.txt`, `transcripts/step2_grounded_demo_kb_fixed.txt` | B2-B7, B13 | Thresholds 0.377 / 0.391; F5 (competitor question) planned for step 3 guardrail |
-| 1.5 | Precision/recall for both collections with per-query arithmetic and a numbers-cited recommendation | Done | `scripts/eval_retrieval.py` | `transcripts/step2_retrieval_eval.txt` | | kb_fixed 0.700/0.900 vs kb_sentence 0.567/0.900; may change if F3 is fixed |
+| 1.3 | Two chunking strategies indexed into two separate ChromaDB collections, both retrieving sensibly | Done | `ola_agent/rag/chunking.py`, `ola_agent/rag/index.py` | `transcripts/step2_build_index.txt` | B9, B11 | F3 fixed: fixed-size chunk edges snap to spaces (38 / 48 chunks) |
+| 1.4 | Grounded generation on >=5 in-scope queries plus 1 out-of-scope fallback | Done | `ola_agent/rag/generate.py` | `transcripts/step2_calibration.txt`, `transcripts/step2_grounded_demo_kb_fixed.txt` | B2-B7, B10, B13 | Thresholds 0.433 / 0.391 (after F3); F4 fixed (k < 1 rejected); F5 (competitor question) planned for step 3 guardrail |
+| 1.5 | Precision/recall for both collections with per-query arithmetic and a numbers-cited recommendation | Done | `scripts/eval_retrieval.py` | `transcripts/step2_retrieval_eval.txt` | | kb_fixed 0.600/0.900 vs kb_sentence 0.567/0.900 (rerun after F3); kb_fixed still recommended |
 
 ## Part 2: CrewAI orchestration, tools, memory, guardrails
 
