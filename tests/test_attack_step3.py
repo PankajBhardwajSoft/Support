@@ -153,7 +153,8 @@ def test_c8_broken_schema_is_rejected(client, monkeypatch):
 
 
 # C9: competitor names in different spellings are out of scope (F5).
-@pytest.mark.parametrize("q", ["What is UBER's refund policy?", "rapido bike refund rules", "Does BluSmart give credits?"])
+@pytest.mark.parametrize("q", ["What is UBER's refund policy?", "rapido bike refund rules", "Does BluSmart give credits?",
+                               "What is inDrive's refund policy?", "Bolt cancellation fee", "namma  yatri refund", "Blu Smart credits"])
 def test_c9_competitor_spellings(q):
     c = check_input(q)
     assert c.blocked and c.refusal == FALLBACK_ANSWER
@@ -199,8 +200,7 @@ def test_c13_tool_output_with_react_words_is_data():
     json.loads(draft.model_dump_json())
 
 
-# C14: a ride company missing from the competitor list (inDrive) must not get Ola's policy.
-# Fails until finding F6 is fixed (see security/step3_attack_test.md).
+# C14: a ride company that was missing from the competitor list (inDrive) must not get Ola's policy (F6).
 @needs_model
 def test_c14_unlisted_competitor_falls_back(client):
     from ola_agent.pipeline import ask
@@ -219,3 +219,15 @@ def test_c15_paraphrased_injection_still_refused(client):
     assert not check_input(q).blocked
     r = ask(q, client)
     assert r.response.answer == FALLBACK_ANSWER and r.output_check.refused
+
+
+# C16: grounded answers keep document order and do not repeat overlapping text (F7).
+@needs_model
+def test_c16_answer_in_document_order_without_repeats(client):
+    from ola_agent.pipeline import ask
+
+    answer = ask("When does a ticket get escalated to Tier 2?", client).response.answer
+    runs = [answer[i:i + 30] for i in range(len(answer) - 30)]
+    assert len(runs) == len(set(runs)), "a 30-character run is repeated"
+    first, second = "cannot resolve it", "if it is still open after a further 24 hours"
+    assert second in answer and answer.index(first) < answer.index(second)

@@ -129,8 +129,8 @@ Every crew response is a `SupportResponse` (`ola_agent/schema.py`): `answer`, `s
 |---|---|---|
 | Input | Phone masking | Indian mobile numbers (optional `+91`, `91` or `0`; spaces or dashes allowed) become `[PHONE]` before the crew or memory sees the text |
 | Input | Prompt injection | Pattern rules on Unicode-normalized text (e.g. "ignore previous instructions", "reveal your system prompt") |
-| Input | Competitor scope | A question naming Uber, Rapido, BluSmart or Meru gets "I don't know", because Ola's policies don't apply to them |
-| Output | Groundedness | The answer is rebuilt only from passages at or above the 0.433 threshold, plus the ticket result. With neither, the answer is "I don't know" |
+| Input | Competitor scope | A question naming another ride company (Uber, Rapido, BluSmart, Meru, inDrive, Bolt, Namma Yatri, Lyft) gets "I don't know", because Ola's policies don't apply to them. A fixed list can't catch every company name without a real model |
+| Output | Groundedness | The answer is rebuilt only from passages at or above the 0.433 threshold (in document order, without repeated overlap), plus the ticket result. With neither, the answer is "I don't know" |
 
 Each guardrail fires on a deliberate case in `transcripts/step3_guardrails.txt`.
 

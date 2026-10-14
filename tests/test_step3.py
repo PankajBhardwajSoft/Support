@@ -8,7 +8,7 @@ from pydantic import ValidationError
 
 from dataset import SUPPORT_TICKETS
 from ola_agent.guardrails import (
-    FALLBACK_ANSWER, check_groundedness, check_input, find_competitor, find_injection, mask_phones,
+    FALLBACK_ANSWER, check_groundedness, check_input, find_competitor, find_injection, join_passages, mask_phones,
 )
 from ola_agent.memory import is_ticket_followup, last_ticket_id
 from ola_agent.rag.embeddings import MODEL_DIR
@@ -110,6 +110,15 @@ def test_groundedness_keeps_ticket_answer():
     ticket = TicketInfo(**check_support_ticket_status("TKT-0007"))
     out = check_groundedness(_draft(ticket), [], 0.433)
     assert out.response.grounded and "TKT-0007" in out.response.answer
+
+
+def test_join_passages_orders_and_merges_overlap():
+    chunks = [
+        {"chunk_id": "KB-01-F01", "doc_id": "KB-01", "text": "the second part of the text ends here.", "similarity": 0.9},
+        {"chunk_id": "KB-01-F00", "doc_id": "KB-01", "text": "Start of text, the second part of the text", "similarity": 0.5},
+        {"chunk_id": "KB-02-F00", "doc_id": "KB-02", "text": "Another document.", "similarity": 0.4},
+    ]
+    assert join_passages(chunks) == "Start of text, the second part of the text ends here. Another document."
 
 
 # --- Task 8: memory helpers ------------------------------------------------------------------------

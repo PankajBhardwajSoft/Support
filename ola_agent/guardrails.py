@@ -36,8 +36,9 @@ INJECTION_PATTERNS = [
 ]
 _INJECTION = [re.compile(p) for p in INJECTION_PATTERNS]
 
-COMPETITORS = ("uber", "rapido", "blusmart", "meru")
-_COMPETITOR = re.compile(r"\b(" + "|".join(COMPETITORS) + r")\b")
+# Other ride-hailing brands (F5, F6). A fixed list cannot be complete without a real model; see README.
+COMPETITORS = ("uber", "rapido", "blusmart", "blu smart", "meru", "indrive", "in drive", "bolt", "namma yatri", "lyft")
+_COMPETITOR = re.compile(r"\b(" + "|".join(re.escape(c).replace(r"\ ", r"\s?") for c in COMPETITORS) + r")\b")
 
 INJECTION_REFUSAL = "I can't help with that request. I can answer questions about Ola support policies or a ticket ID."
 
@@ -88,6 +89,32 @@ def check_input(question: str) -> InputCheck:
     return check
 
 
+_MIN_OVERLAP = 10
+
+
+def join_passages(chunks: list[dict]) -> str:
+    """Join passages in document order, dropping text that overlapping chunks repeat (F7).
+
+    Documents keep the order of their best match; inside a document, chunks go
+    in chunk-number order. Only retrieved text is used.
+    """
+    doc_rank = {}
+    for c in sorted(chunks, key=lambda c: -c["similarity"]):
+        doc_rank.setdefault(c["doc_id"], len(doc_rank))
+    ordered = sorted({c["chunk_id"]: c for c in chunks}.values(),
+                     key=lambda c: (doc_rank[c["doc_id"]], c["chunk_id"]))
+    pieces = []
+    for prev, cur in zip([None] + ordered, ordered):
+        text = cur["text"]
+        if prev is not None and prev["doc_id"] == cur["doc_id"]:
+            overlap = next((k for k in range(min(len(prev["text"]), len(text)), _MIN_OVERLAP - 1, -1)
+                            if prev["text"].endswith(text[:k])), 0)
+            text = text[overlap:].lstrip()
+        if text:
+            pieces.append(text)
+    return " ".join(pieces)
+
+
 def ticket_sentence(ticket: TicketInfo) -> str:
     if not ticket.found:
         return ticket.message or f"I couldn't find ticket {ticket.record_id}."
@@ -113,7 +140,8 @@ def check_groundedness(draft: SupportResponse, chunks: list[dict], threshold: fl
     supported = [c for c in chunks if c["similarity"] >= threshold]
     dropped = [c["chunk_id"] for c in chunks if c["similarity"] < threshold]
     parts = [ticket_sentence(draft.ticket)] if draft.ticket else []
-    parts += list(dict.fromkeys(c["text"] for c in supported))
+    if supported:
+        parts.append(join_passages(supported))
     if not parts:
         top = max((c["similarity"] for c in chunks), default=0.0)
         refused = SupportResponse(answer=FALLBACK_ANSWER, sources=[], ticket=None, grounded=False, confidence=draft.confidence)

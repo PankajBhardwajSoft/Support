@@ -15,7 +15,7 @@ from typing import Any
 
 from crewai import Agent, Crew, Process, Task
 
-from ola_agent.guardrails import ticket_sentence
+from ola_agent.guardrails import join_passages, ticket_sentence
 from ola_agent.mock_llm import MockLLM, _normalize
 from ola_agent.schema import SupportResponse, TicketInfo
 from ola_agent.tools.policy_search import PolicySearchTool
@@ -68,7 +68,8 @@ def compose_draft(blocks: list[dict[str, Any]]) -> SupportResponse:
     parts = []
     if ticket is not None:
         parts.append(ticket_sentence(ticket))
-    parts += list(dict.fromkeys(c["text"] for c in chunks))
+    if chunks:
+        parts.append(join_passages(chunks))
     top = max((c["similarity"] for c in chunks), default=0.0)
     return SupportResponse(
         answer=" ".join(parts) or "No information was found.",

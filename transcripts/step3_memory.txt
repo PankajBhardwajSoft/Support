@@ -8,7 +8,7 @@ $ python scripts/demo_memory.py   (MOCK_LLM, network blocked)
 [session-1] agent: Ticket TKT-0007 is Closed, with a resolution time of 101.8 hours. Its escalation score is 0.917, at or above the escalation threshold of 0.50.
 [session-1] user: How long will it take to resolve?
 [session-1] (memory supplied the ticket: 'How long will it take to resolve? (TKT-0007)')
-[session-1] agent: Ticket TKT-0007 is Closed, with a resolution time of 101.8 hours. Its escalation score is 0.917, at or above the escalation threshold of 0.50. Our service-level agreement sets both a first-response time and a resolution target for each priority. P1 tickets get a first response within 15 minutes and a resolution target of 4 hours, and P2 and a resolution target of 4 hours, and P2 tickets get a response within 1 hour and resolution within 24 hours. P3 tickets get a response within 4 hours and resolution within 72 hours, and P4
+[session-1] agent: Ticket TKT-0007 is Closed, with a resolution time of 101.8 hours. Its escalation score is 0.917, at or above the escalation threshold of 0.50. Our service-level agreement sets both a first-response time and a resolution target for each priority. P1 tickets get a first response within 15 minutes and a resolution target of 4 hours, and P2 tickets get a response within 1 hour and resolution within 24 hours. P3 tickets get a response within 4 hours and resolution within 72 hours, and P4
 history now holds 4 messages
 
 === Transcript 2: fresh session, state is absent ===

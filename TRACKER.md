@@ -36,7 +36,7 @@ Status values: Not started / In progress / Done / Failed
 | 2.2 | Crew of >=3 agents; RAG and lookup tools both invoked via `.kickoff()` | Done | `ola_agent/crew.py`, `ola_agent/tools/` | `transcripts/step3_crew.txt` | C3, C4, C13 | Only the Lookup Agent holds the ticket tool |
 | 2.3 | Multi-turn memory plus fresh-conversation transcript | Done | `ola_agent/memory.py` | `transcripts/step3_memory.txt` | C7 | In-process only |
 | 2.4 | Every crew response validates against a Pydantic schema | Done | `ola_agent/schema.py`, `ola_agent/crew.py` | `transcripts/step3_crew.txt`, `transcripts/step3_pytest.txt` | C8 | `output_pydantic` plus `model_validate` in code |
-| 2.5 | Input (PII/injection) and output (groundedness) guardrails each shown firing | Done | `ola_agent/guardrails.py`, `ola_agent/pipeline.py` | `transcripts/step3_guardrails.txt` | C5, C6, C9, C10, C12 | Also fixes step 2 finding F5 (B13 passes) |
+| 2.5 | Input (PII/injection) and output (groundedness) guardrails each shown firing | Done | `ola_agent/guardrails.py`, `ola_agent/pipeline.py` | `transcripts/step3_guardrails.txt` | C5, C6, C9, C10, C12, C14, C16 | Fixes F5 (B13 passes); F6, F7 fixed |
 
 ## Part 3: Evaluation, observability, FastAPI
 
