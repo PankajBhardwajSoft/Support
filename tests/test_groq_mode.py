@@ -24,10 +24,9 @@ REFUND = ("Refunds to cards and UPI usually arrive within 5 to 7 working days, "
 FAKE_KEY = "gsk_test_not_a_real_key_0123456789"
 
 
-def fake_composer(answer: str, ticket: dict | None = None, sources=("KB-04",)) -> MockLLM:
-    """A stand-in for the Groq composer that always writes this answer."""
-    body = {"answer": answer, "sources": list(sources), "ticket": ticket, "grounded": True, "confidence": 0.99}
-    return MockLLM(responder=lambda task, obs: json.dumps(body))
+def fake_composer(answer: str) -> MockLLM:
+    """A stand-in for the Groq composer: like the real model, it writes only the reply text."""
+    return MockLLM(responder=lambda task, obs: json.dumps({"answer": answer}))
 
 
 class FakeJudge:
@@ -55,10 +54,10 @@ def client():
     return c
 
 
-def _ask(groq_mode, client, answer, ticket=None, question="How long does a refund to my card or UPI take?"):
+def _ask(groq_mode, client, answer, question="How long does a refund to my card or UPI take?"):
     import ola_agent.crew as crew
 
-    groq_mode.setattr(crew, "_real_llm", lambda: fake_composer(answer, ticket))
+    groq_mode.setattr(crew, "_real_llm", lambda: fake_composer(answer))
     from ola_agent.pipeline import ask
 
     return ask(question, client)
@@ -85,6 +84,18 @@ def test_env_file_gives_only_groq_settings(monkeypatch, tmp_path):
     config._load_groq_settings(str(env))
     assert os.environ["GROQ_API_KEY"] == FAKE_KEY and os.environ["GROQ_MODEL"] == "llama-3.1-8b-instant"
     assert "MOCK_LLM" not in os.environ and "OTHER" not in os.environ
+
+
+def test_real_composer_is_asked_for_the_reply_text_only(groq_mode):
+    # First real Groq run (2026-10-14): asked for the full SupportResponse, the model filled
+    # "ticket" with record_id null and Groq rejected the reply against the schema.
+    import ola_agent.crew as crew
+
+    groq_mode.setattr(crew, "_real_llm", lambda: fake_composer("x"))
+    built, _, _ = crew.build_crew("What priority does a stranded rider get?")
+    schema = built.tasks[2].output_pydantic.model_json_schema()
+    assert set(schema["properties"]) == {"answer"}
+    assert "full sentences" in built.tasks[2].description
 
 
 def test_mock_mode_never_builds_the_real_model(monkeypatch):
@@ -148,10 +159,7 @@ def test_pipeline_uses_the_model_answer(groq_mode, client):
 
 @needs_model
 def test_ticket_comes_from_the_tool_not_the_model(groq_mode, client):
-    fake_ticket = {"record_id": "TKT-0007", "found": True, "status": "Resolved", "resolution_time_hours": 1.0,
-                   "escalation_score": 0.0, "escalate": False, "message": None}
-    r = _ask(groq_mode, client, "Ticket TKT-0007 is Resolved.", ticket=fake_ticket,
-             question="What is the status of TKT-0007?")
+    r = _ask(groq_mode, client, "Ticket TKT-0007 is Resolved.", question="What is the status of TKT-0007?")
     from ola_agent.guardrails import ticket_sentence
     from ola_agent.tools.ticket_lookup import check_support_ticket_status
 

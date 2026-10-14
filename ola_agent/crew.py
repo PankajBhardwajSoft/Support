@@ -16,6 +16,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from crewai import Agent, Crew, Process, Task
+from pydantic import BaseModel, ConfigDict
 
 from ola_agent import config
 from ola_agent.guardrails import join_passages, ticket_sentence
@@ -32,7 +33,8 @@ _CONTEXT_SEPARATOR = "----------"
 
 # Added to the Composer's task only for the real model.
 REAL_COMPOSER_RULES = (
-    " Use only the policy passages and the ticket result given to you as context. "
+    " Answer in one to three full sentences. "
+    "Use only the policy passages and the ticket result given to you as context. "
     "Reuse their wording; do not add facts, numbers or phone numbers of your own. "
     "If they do not answer the question, reply exactly: I don't know."
 )
@@ -88,6 +90,15 @@ def compose_draft(blocks: list[dict[str, Any]]) -> SupportResponse:
         grounded=bool(parts),
         confidence=min(max(top, 0.0), 1.0),
     )
+
+
+class ComposerAnswer(BaseModel):
+    """What the real model writes: only the reply text. Sources, ticket and
+    confidence come from the tools, so the model is never asked for them."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    answer: str
 
 
 class ComposerLLM(MockLLM):
@@ -149,7 +160,7 @@ def build_crew(question: str, client=None) -> tuple[Crew, PolicySearchTool, Tick
         expected_output="A reply matching the SupportResponse schema.",
         agent=composer,
         context=[search_task, lookup_task],
-        output_pydantic=SupportResponse,
+        output_pydantic=SupportResponse if config.MOCK_LLM else ComposerAnswer,
     )
     crew = Crew(agents=[retrieval, lookup, composer], tasks=[search_task, lookup_task, compose_task],
                 process=Process.sequential, verbose=False)
@@ -159,17 +170,23 @@ def build_crew(question: str, client=None) -> tuple[Crew, PolicySearchTool, Tick
 def run_crew(question: str, client=None) -> CrewRun:
     crew, policy_tool, ticket_tool = build_crew(question, client)
     output = crew.kickoff()
-    # Task 9: validate in code, not only through CrewAI's conversion.
-    draft = SupportResponse.model_validate(output.pydantic.model_dump() if output.pydantic else json.loads(output.raw))
     search_raw, lookup_raw = output.tasks_output[0].raw, output.tasks_output[1].raw
     search, lookup = _as_json(search_raw, {"chunks": []}), _as_json(lookup_raw, NO_TICKET)
-    if not config.MOCK_LLM:
-        # The ticket and confidence come from the tools, never from the model's text.
-        top = max((c["similarity"] for c in search.get("chunks", [])), default=0.0)
-        draft = draft.model_copy(update={
-            "ticket": TicketInfo(**lookup) if lookup.get("record_id") else None,
-            "confidence": min(max(top, 0.0), 1.0),
-        })
+    if config.MOCK_LLM:
+        # Task 9: validate in code, not only through CrewAI's conversion.
+        draft = SupportResponse.model_validate(output.pydantic.model_dump() if output.pydantic else json.loads(output.raw))
+    else:
+        # The model wrote only the text; sources, ticket and confidence come from the tools.
+        text = output.pydantic.answer if output.pydantic else _as_json(output.raw, {"answer": output.raw})["answer"]
+        chunks = search.get("chunks", [])
+        top = max((c["similarity"] for c in chunks), default=0.0)
+        draft = SupportResponse(
+            answer=str(text).strip() or "I don't know.",
+            sources=list(dict.fromkeys(c["doc_id"] for c in chunks)),
+            ticket=TicketInfo(**lookup) if lookup.get("record_id") else None,
+            grounded=bool(chunks or lookup.get("record_id")),
+            confidence=min(max(top, 0.0), 1.0),
+        )
     return CrewRun(
         draft=draft,
         search=search,

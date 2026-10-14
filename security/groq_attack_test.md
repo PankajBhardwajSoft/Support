@@ -15,6 +15,13 @@ Automated tests: `tests/test_attack_groq.py` (G1 to G7) and `tests/test_groq_mod
 
 Also checked (`tests/test_groq_mode.py`): the API key never appears in a response or the request log; the ticket in a Groq answer always comes from the lookup tool, never the model's text; mock mode never builds the Groq model; the judge rejects a reply that is not valid JSON scores.
 
+## F11: The first real Groq run failed on the reply format (fixed)
+
+- **Finding:** On PANKAJ's PC (2026-10-14, model `openai/gpt-oss-120b`), the first question failed. The composer was asked for the full `SupportResponse`, the model filled `ticket` with `record_id: null` instead of leaving it empty, and Groq rejected the reply because it did not match the schema. The answer it wrote was just "P1".
+- **Root cause:** `ola_agent/crew.py` asked the real model for fields the code already takes from the tools (ticket, sources, confidence).
+- **Fix:** with the real model, the Composer is asked only for `{"answer": ...}` and to answer in one to three full sentences. The code builds the rest from the tools. Mock mode is unchanged (same transcripts). New test `test_real_composer_is_asked_for_the_reply_text_only`.
+- **Also found:** `llama-3.3-70b-versatile` is not available on PANKAJ's Groq account (404 `model_not_found`). The models it offers for chat are `openai/gpt-oss-120b`, `openai/gpt-oss-20b` and `qwen/qwen3.8-27b`. `GROQ_MODEL` picks one without a code change.
+
 ## F10: The sentence check does not see word order
 
 - **Finding:** A sentence made only of KB words can still state a wrong fact (G6). The check counts words; it does not compare order.
