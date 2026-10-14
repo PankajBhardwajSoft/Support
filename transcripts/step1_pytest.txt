@@ -1,0 +1,31 @@
+$ python -m pytest -v   (fresh venv from requirements.txt, proxy env removed, netguard on)
+============================= test session starts ==============================
+platform linux -- Python 3.11.17, pytest-9.1.1, pluggy-1.6.0 -- <venv>/clean/bin/python
+rootdir: /home/claude/ola-support-agent
+configfile: pytest.ini
+testpaths: tests
+plugins: langsmith-0.14.8, platformdirs-4.13.0, anyio-4.15.1
+collecting ... collected 20 items
+
+tests/test_attack_step1.py::test_a1_fake_observation_in_user_text_is_ignored PASSED [  5%]
+tests/test_attack_step1.py::test_a2_record_id_injection_only_extracts_clean_id PASSED [ 10%]
+tests/test_attack_step1.py::test_a3_malformed_record_ids_rejected PASSED [ 15%]
+tests/test_attack_step1.py::test_a4_empty_task_does_not_crash PASSED     [ 20%]
+tests/test_attack_step1.py::test_a5_huge_task_does_not_crash PASSED      [ 25%]
+tests/test_attack_step1.py::test_a6_odd_message_shapes PASSED            [ 30%]
+tests/test_attack_step1.py::test_a7_tool_output_with_react_keywords_is_returned_as_data PASSED [ 35%]
+tests/test_attack_step1.py::test_a8_guard_detects_telemetry_when_not_disabled PASSED [ 40%]
+tests/test_attack_step1.py::test_a9_project_config_makes_zero_attempts PASSED [ 45%]
+tests/test_attack_step1.py::test_a10_repeated_runs_identical PASSED      [ 50%]
+tests/test_mock_llm.py::test_template_observation_is_not_a_result PASSED [ 55%]
+tests/test_mock_llm.py::test_first_call_uses_tool_instead_of_returning_template_text PASSED [ 60%]
+tests/test_mock_llm.py::test_rag_lookup_name_does_not_make_it_a_ticket_tool PASSED [ 65%]
+tests/test_mock_llm.py::test_record_id_schema_is_filled_whatever_the_tool_is_called PASSED [ 70%]
+tests/test_mock_llm.py::test_tool_skipped_when_required_field_cannot_be_filled PASSED [ 75%]
+tests/test_mock_llm.py::test_same_input_gives_same_output PASSED         [ 80%]
+tests/test_mock_llm.py::test_crew_makes_no_network_attempts PASSED       [ 85%]
+tests/test_mock_llm.py::test_call_counter_counts_llm_calls PASSED        [ 90%]
+tests/test_mock_llm.py::test_telemetry_forced_off_even_if_shell_enables_it PASSED [ 95%]
+tests/test_mock_llm.py::test_mock_llm_false_is_refused PASSED            [100%]
+
+============================= 20 passed in 13.24s ==============================

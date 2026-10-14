@@ -1,0 +1,10 @@
+$ python scripts/smoke_test.py   (fresh venv from requirements.txt, proxy env removed)
+MOCK_LLM = True
+CREWAI_DISABLE_TELEMETRY = true
+OTEL_SDK_DISABLED = true
+Network: blocked for this run
+Crew answer: [placeholder policy text for: What is the refund policy?]
+Mock LLM calls: 2
+Blocked network attempts: none
+SMOKE TEST: PASS
+exit code: 0
