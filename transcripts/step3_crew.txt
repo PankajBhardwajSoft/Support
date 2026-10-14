@@ -1,0 +1,21 @@
+$ python scripts/demo_crew.py   (MOCK_LLM, network blocked)
+Q: When does a ticket get escalated to Tier 2?
+   agents: Retrieval Agent, Lookup Agent, Response Composer
+   Retrieval Agent called search_ola_policies: ['When does a ticket get escalated to Tier 2?']
+   Lookup Agent called check_support_ticket_status: []
+   Composer draft (validated as SupportResponse): {"answer":"A ticket moves to Tier 2 support when it breaches 75 percent of its SLA resolution target or when the frontline agent cannot resolve it. Tier 2 hands the ticket to the city operations manager if it is still open after a further 24 hours, or immediately if it involves rider or driver safety. Safety incidents and any legal threat are escalated straight to the Trust and Safety team, whatever the ticket's age. Every escalation must record the reason and the name of the person who now owns the","sources":["KB-03"],"ticket":null,"grounded":true,"confidence":0.711}
+   guardrails: none fired
+   final answer: {"answer":"A ticket moves to Tier 2 support when it breaches 75 percent of its SLA resolution target or when the frontline agent cannot resolve it. Tier 2 hands the ticket to the city operations manager if it is still open after a further 24 hours, or immediately if it involves rider or driver safety. Safety incidents and any legal threat are escalated straight to the Trust and Safety team, whatever the ticket's age. Every escalation must record the reason and the name of the person who now owns the","sources":["KB-03"],"ticket":null,"grounded":true,"confidence":0.711}
+
+Q: What is the status of TKT-0023?
+   agents: Retrieval Agent, Lookup Agent, Response Composer
+   Retrieval Agent called search_ola_policies: ['What is the status of TKT-0023?']
+   Lookup Agent called check_support_ticket_status: ['TKT-0023']
+   Composer draft (validated as SupportResponse): {"answer":"Ticket TKT-0023 is Resolved, with a resolution time of 114.8 hours. Its escalation score is 0.283, below the escalation threshold of 0.50. When an outage affects booking, payments or driver login in any city, the incident lead posts an in-app banner within 15 minutes of confirming it. Status updates are posted at least every 30 minutes until the service is restored. Support agents link all related tickets to the incident instead of answering each one separately. Within 48 hours of waiting for information that the customer has been asked to provide.","sources":["KB-11","KB-02"],"ticket":{"record_id":"TKT-0023","found":true,"status":"Resolved","resolution_time_hours":114.8,"escalation_score":0.283,"escalate":false,"message":null},"grounded":true,"confidence":0.294}
+   guardrails: ['output: groundedness trimmed (dropped 3 passage(s) below the 0.433 threshold)']
+   final answer: {"answer":"Ticket TKT-0023 is Resolved, with a resolution time of 114.8 hours. Its escalation score is 0.283, below the escalation threshold of 0.50.","sources":[],"ticket":{"record_id":"TKT-0023","found":true,"status":"Resolved","resolution_time_hours":114.8,"escalation_score":0.283,"escalate":false,"message":null},"grounded":true,"confidence":0.294}
+
+RAG tool used on the policy question only: PASS
+Lookup tool used on the ticket question: PASS
+CREW DEMO: PASS
+exit code: 0

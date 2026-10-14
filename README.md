@@ -88,6 +88,61 @@ python scripts\eval_retrieval.py
 
 Known limitation: the embedding model is English-only, so non-English questions get the "I don't know" fallback.
 
+## Crew, tools, memory and guardrails (Part 2, Tasks 6 to 10)
+
+### Ticket lookup and escalation score (Task 6)
+
+`check_support_ticket_status(record_id)` (`ola_agent/tools/ticket_lookup.py`) returns `status`, `resolution_time_hours` and `escalation_score`. Unknown or malformed IDs return `found: false` instead of an error.
+
+```
+escalation_score = 0.5 * escalated + 0.5 * (days_since_created / 30)
+```
+
+- Both parts are in [0, 1], so the score is too. Older tickets score higher, because a ticket left open longer is more likely to need escalating.
+- **Why equal weights:** with 0.6 / 0.4, every escalated ticket on our data scored at least 0.613 and every other ticket at most 0.400. Any threshold then just copies the `escalated` flag, which is a bare boolean. With 0.5 / 0.5, a 30-day-old ticket that was never escalated (0.500) reaches a fresh escalated one (0.517).
+- **Recommended threshold: 0.50**, the 75th percentile of the score over our 50 tickets (nearest rank). It flags 14 tickets: all 13 escalated ones, plus TKT-0016, which is 30 days old and was never escalated. Distribution and list: `transcripts/step3_escalation_threshold.txt`.
+- **Limitation:** the brief defines the score from `escalated` and age only, so a Closed ticket can still score high.
+
+### The crew (Task 7)
+
+`ola_agent/crew.py` runs three agents in order with `.kickoff()`, all on `MockLLM`:
+
+| Agent | Tool | Job |
+|---|---|---|
+| Retrieval Agent | `search_ola_policies(query)` over `kb_fixed` | Finds policy passages |
+| Lookup Agent | `check_support_ticket_status(record_id)`, held by **no other agent** | Looks up the ticket, if the question has an ID |
+| Response Composer | none | Combines both results into one draft |
+
+The mock fills tool arguments from each tool's schema. A question without a `TKT-` ID gives the Lookup Agent nothing to fill, so it does not call the tool. `transcripts/step3_crew.txt` shows the RAG tool used on a policy question and the lookup tool on a ticket question.
+
+### Session memory (Task 8)
+
+`ola_agent/memory.py` uses LangChain's `InMemoryChatMessageHistory` with `RunnableWithMessageHistory`, one history per `session_id`, in memory only. A follow-up such as "How long will it take to resolve?" uses the last ticket ID in that session. A new session has none, so the agent asks for the ID. See `transcripts/step3_memory.txt`. The `LangChainDeprecationWarning` printed there is expected, as the brief says.
+
+### Structured output (Task 9)
+
+Every crew response is a `SupportResponse` (`ola_agent/schema.py`): `answer`, `sources`, `ticket`, `grounded`, `confidence`. It is set as the Composer task's `output_pydantic` and validated again in code with `model_validate`. Extra fields, an empty answer or a confidence outside [0, 1] raise an error.
+
+### Guardrails (Task 10)
+
+| Side | Guardrail | Rule |
+|---|---|---|
+| Input | Phone masking | Indian mobile numbers (optional `+91`, `91` or `0`; spaces or dashes allowed) become `[PHONE]` before the crew or memory sees the text |
+| Input | Prompt injection | Pattern rules on Unicode-normalized text (e.g. "ignore previous instructions", "reveal your system prompt") |
+| Input | Competitor scope | A question naming another ride company (Uber, Rapido, BluSmart, Meru, inDrive, Bolt, Namma Yatri, Lyft) gets "I don't know", because Ola's policies don't apply to them. A fixed list can't catch every company name without a real model |
+| Output | Groundedness | The answer is rebuilt only from passages at or above the 0.433 threshold (in document order, without repeated overlap), plus the ticket result. With neither, the answer is "I don't know" |
+
+Each guardrail fires on a deliberate case in `transcripts/step3_guardrails.txt`.
+
+### Run Part 2
+
+```powershell
+python scripts\escalation_threshold.py
+python scripts\demo_crew.py
+python scripts\demo_memory.py
+python scripts\demo_guardrails.py
+```
+
 ## Setup in VS Code (Windows)
 
 1. Install Python 3.11 and VS Code with the Python extension.
@@ -122,11 +177,18 @@ ola_agent/
   mock_llm.py     deterministic offline LLM for CrewAI (BaseLLM)
   netguard.py     blocks outbound network during runs and tests
   rag/            Part 1: KB loading, chunking, embeddings, ChromaDB, grounded answers
+  tools/          Part 2: policy search tool and ticket lookup tool
+  crew.py         Part 2: Retrieval, Lookup and Composer agents
+  schema.py       Part 2: SupportResponse, the structured output
+  guardrails.py   Part 2: phone masking, injection and scope checks, groundedness
+  pipeline.py     Part 2: one question end to end (guardrails, crew, checks)
+  memory.py       Part 2: LangChain session memory
 dataset.py        Part 1 Task 1: seeded support-ticket generator
 kb/               12 knowledge-base documents
 scripts/
   smoke_test.py   step 1: one-agent crew on the mock, network blocked
   download_model.py, build_index.py, calibrate_threshold.py, demo_grounded.py, eval_retrieval.py
+  escalation_threshold.py, demo_crew.py, demo_memory.py, demo_guardrails.py
 tests/            unit tests and attack tests (all run with network blocked)
 transcripts/      saved text output of every demonstration run
 security/         attack-test reports, one per step
