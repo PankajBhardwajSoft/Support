@@ -1,16 +1,16 @@
 """Grounded generation demo: 5 in-scope queries plus 1 out-of-scope query (Task 4).
 
-Run:  python scripts/demo_grounded.py [collection]   (default: kb_sentence)
+Run:  python scripts/demo_grounded.py [collection]   (default: the recommended collection)
 """
 
 import sys
 
 import _bootstrap  # noqa: F401
 
-from ola_agent.rag.generate import FALLBACK_ANSWER, answer, load_threshold
+from ola_agent.rag.generate import FALLBACK_ANSWER, RECOMMENDED_COLLECTION, answer, load_threshold
 from ola_agent.rag.queries import DEMO_OUT_OF_SCOPE, IN_SCOPE
 
-name = sys.argv[1] if len(sys.argv) > 1 else "kb_sentence"
+name = sys.argv[1] if len(sys.argv) > 1 else RECOMMENDED_COLLECTION
 threshold = load_threshold(name)
 print(f"Collection: {name}   threshold: {threshold:.3f}   MOCK_LLM: answers are built only from retrieved chunks\n")
 

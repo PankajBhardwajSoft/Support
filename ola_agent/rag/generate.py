@@ -16,6 +16,8 @@ from ola_agent.rag.embeddings import ROOT, embed
 from ola_agent.rag.index import get_collection
 
 TOP_K = 3
+# Chosen from scripts/eval_retrieval.py: higher mean precision at equal recall (README).
+RECOMMENDED_COLLECTION = "kb_fixed"
 FALLBACK_ANSWER = "I don't know. I couldn't find this in the Ola support policies."
 
 # Written by scripts/calibrate_threshold.py from measured similarities; see README.

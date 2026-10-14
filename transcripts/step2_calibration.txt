@@ -1,0 +1,28 @@
+$ python scripts/calibrate_threshold.py   (MOCK_LLM, network blocked)
+Collection 'kb_fixed': top-1 cosine similarity
+  in-scope      0.679  How quickly will I get a reply to a P1 ticket?
+  in-scope      0.662  I was charged twice for one ride, can I get a refund?
+  in-scope      0.711  When does a ticket get escalated to Tier 2?
+  in-scope      0.683  How long do you keep my support chat history?
+  in-scope      0.453  What compensation do I get if my driver is very late?
+  out-of-scope  0.132  What is the capital of France?
+  out-of-scope  0.120  Can you recommend a good biryani recipe?
+  out-of-scope  0.301  How do I reset my Netflix password?
+  lowest in-scope = 0.453, highest out-of-scope = 0.301, gap = 0.152
+  threshold = midpoint = (0.453 + 0.301) / 2 = 0.377
+
+Collection 'kb_sentence': top-1 cosine similarity
+  in-scope      0.748  How quickly will I get a reply to a P1 ticket?
+  in-scope      0.719  I was charged twice for one ride, can I get a refund?
+  in-scope      0.756  When does a ticket get escalated to Tier 2?
+  in-scope      0.751  How long do you keep my support chat history?
+  in-scope      0.472  What compensation do I get if my driver is very late?
+  out-of-scope  0.135  What is the capital of France?
+  out-of-scope  0.118  Can you recommend a good biryani recipe?
+  out-of-scope  0.310  How do I reset my Netflix password?
+  lowest in-scope = 0.472, highest out-of-scope = 0.310, gap = 0.162
+  threshold = midpoint = (0.472 + 0.310) / 2 = 0.391
+
+Wrote rag_thresholds.json
+CALIBRATION: PASS
+exit code: 0

@@ -1,0 +1,35 @@
+$ python dataset.py   (MOCK_LLM, network blocked)
+SUPPORT_TICKETS: 50 records (seed=42)
+
+Count per category:
+  Technical Issue  15
+  Billing          11
+  Product Defect   11
+  General Inquiry  7
+  Account Access   6
+
+Count per status:
+  Resolved         12
+  In Progress      12
+  Open             11
+  Closed           11
+  Escalated        4
+
+Escalated: 13/50 = 26.0%
+
+Threshold checks:
+  [PASS] at least 40 records (got 50)
+  [PASS] category 'Billing' >= 3 (got 11)
+  [PASS] category 'Technical Issue' >= 3 (got 15)
+  [PASS] category 'Account Access' >= 3 (got 6)
+  [PASS] category 'Product Defect' >= 3 (got 11)
+  [PASS] category 'General Inquiry' >= 3 (got 7)
+  [PASS] status 'Open' >= 1 (got 11)
+  [PASS] status 'In Progress' >= 1 (got 12)
+  [PASS] status 'Escalated' >= 1 (got 4)
+  [PASS] status 'Resolved' >= 1 (got 12)
+  [PASS] status 'Closed' >= 1 (got 11)
+  [PASS] escalated% in [10, 30] (got 26.0%)
+
+DATASET: PASS
+exit code: 0
