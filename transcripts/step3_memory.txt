@@ -1,0 +1,22 @@
+$ python scripts/demo_memory.py   (MOCK_LLM, network blocked)
+/home/claude/support/scripts/demo_memory.py:19: LangChainDeprecationWarning: RunnableWithMessageHistory is deprecated. Use LangGraph's built-in persistence instead.
+  sessions = ChatSessions()
+=== Transcript 1: one session, state carries across turns ===
+/home/claude/support/ola_agent/memory.py:33: LangChainDeprecationWarning: The class `InMemoryChatMessageHistory` was deprecated in LangChain 1.6.4 and will be removed in 2.0.0 See the short-term memory documentation for recommended alternatives: https://docs.langchain.com/oss/python/langchain/short-term-memory
+  return _store.setdefault(session_id, InMemoryChatMessageHistory())
+[session-1] user: What is the status of TKT-0007?
+[session-1] agent: Ticket TKT-0007 is Closed, with a resolution time of 101.8 hours. Its escalation score is 0.917, at or above the escalation threshold of 0.50.
+[session-1] user: How long will it take to resolve?
+[session-1] (memory supplied the ticket: 'How long will it take to resolve? (TKT-0007)')
+[session-1] agent: Ticket TKT-0007 is Closed, with a resolution time of 101.8 hours. Its escalation score is 0.917, at or above the escalation threshold of 0.50. Our service-level agreement sets both a first-response time and a resolution target for each priority. P1 tickets get a first response within 15 minutes and a resolution target of 4 hours, and P2 and a resolution target of 4 hours, and P2 tickets get a response within 1 hour and resolution within 24 hours. P3 tickets get a response within 4 hours and resolution within 72 hours, and P4
+history now holds 4 messages
+
+=== Transcript 2: fresh session, state is absent ===
+[session-2] user: How long will it take to resolve?
+[session-2] agent: Which ticket do you mean? Please share your ticket ID, for example TKT-0001.
+history now holds 2 messages
+
+Turn 2 used TKT-0007 from memory: PASS
+Fresh session had no ticket in memory: PASS
+MEMORY DEMO: PASS
+exit code: 0

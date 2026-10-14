@@ -147,9 +147,13 @@ def test_b12_missing_threshold_file_is_loud(monkeypatch, client):
 
 
 # B13: a question about another company must not get Ola's policy as its answer.
+# Retrieval alone cannot tell companies apart (finding F5), so the fix is the step 3
+# input guardrail; this test runs the question through the guarded pipeline.
 def test_b13_competitor_question_falls_back(client):
-    a = _answer("What is Uber's refund policy?", client)
-    assert a.answer == _fallback(), (a.top_similarity, a.sources)
+    from ola_agent.pipeline import ask
+
+    r = ask("What is Uber's refund policy?", client)
+    assert r.response.answer == _fallback(), r.guardrails_fired
 
 
 # B14: a Hindi question (English-only model) falls back rather than answering wrongly.

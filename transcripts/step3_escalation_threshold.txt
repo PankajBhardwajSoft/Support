@@ -1,0 +1,36 @@
+$ python scripts/escalation_threshold.py   (MOCK_LLM, network blocked)
+escalation_score = 0.5 * escalated + 0.5 * (days_since_created / 30)
+
+50 tickets, 13 with escalated=True
+Sorted scores: 0.000, 0.017, 0.017, 0.033, 0.033, 0.067, 0.083, 0.117, 0.117, 0.150, 0.183, 0.200, 0.233, 0.267, 0.283, 0.283, 0.283, 0.283, 0.283, 0.283, 0.300, 0.300, 0.300, 0.317, 0.333, 0.367, 0.383, 0.417, 0.417, 0.433, 0.433, 0.450, 0.450, 0.467, 0.467, 0.483, 0.500, 0.517, 0.550, 0.600, 0.600, 0.617, 0.750, 0.817, 0.917, 0.933, 0.967, 0.967, 0.983, 1.000
+
+Percentiles (nearest rank):
+  p50 = 0.333
+  p70 = 0.467
+  p75 = 0.500
+  p80 = 0.600
+  p90 = 0.917
+
+Threshold = p75 = 0.500 (code constant 0.50)
+Highest never-escalated ticket: 0.500; lowest escalated ticket: 0.517
+
+Flagged (score >= 0.50): 14 tickets
+  TKT-0016  score 0.500  escalated=False  days=30  status=In Progress
+  TKT-0020  score 0.517  escalated=True   days= 1  status=Escalated
+  TKT-0006  score 0.550  escalated=True   days= 3  status=In Progress
+  TKT-0033  score 0.600  escalated=True   days= 6  status=Escalated
+  TKT-0039  score 0.600  escalated=True   days= 6  status=Resolved
+  TKT-0001  score 0.617  escalated=True   days= 7  status=Open
+  TKT-0028  score 0.750  escalated=True   days=15  status=Closed
+  TKT-0021  score 0.817  escalated=True   days=19  status=Open
+  TKT-0007  score 0.917  escalated=True   days=25  status=Closed
+  TKT-0015  score 0.933  escalated=True   days=26  status=Resolved
+  TKT-0038  score 0.967  escalated=True   days=28  status=Escalated
+  TKT-0046  score 0.967  escalated=True   days=28  status=Escalated
+  TKT-0043  score 0.983  escalated=True   days=29  status=In Progress
+  TKT-0049  score 1.000  escalated=True   days=30  status=Open
+Flagged without escalated=True (age alone): ['TKT-0016']
+
+Threshold matches the measured percentile and age alone can flag a ticket: PASS
+ESCALATION THRESHOLD: PASS
+exit code: 0

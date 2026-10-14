@@ -45,6 +45,7 @@ Automated tests: `tests/test_attack_step2.py` (B1 to B14). Similarity values bel
 - **Root cause:** Under `MOCK_LLM`, retrieval similarity is the only grounding signal (the brief's own constraint). Similarity matches the topic ("refund policy") and cannot see that the question names a different company.
 - **Proposed fix (step 3, not step 2):** The Part 2 input guardrail (Task 10) adds a scope rule: a question naming another ride-hailing company (e.g. Uber, Rapido, BluSmart) gets the fallback. This belongs with the guardrails, so I propose recording it now and building it in step 3.
 - **Retest:** B13 expects the fallback once the guardrail exists.
+- **Status: fixed in step 3.** The input guardrail (`ola_agent/guardrails.py`) blocks questions naming Uber, Rapido, BluSmart or Meru. B13 now runs the question through the guarded pipeline (`ola_agent/pipeline.py`) and passes. Retrieval on its own still matches the question to Ola's refund document, because similarity cannot tell companies apart.
 
 ## Other observations (no fix proposed now)
 
