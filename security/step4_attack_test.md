@@ -1,7 +1,7 @@
 # ATTACK TEST: Step 4 (FastAPI, JSON-Lines logging, evaluation)
 
 Run date: 2026-10-14. Environment: Python 3.11 venv from `requirements.txt`, proxy variables removed, `netguard` blocking outbound connections, embedding model loaded from `./models`.
-Automated tests: `tests/test_attack_step4.py` (D1 to D13). D1 to D12 pass. D13 is marked as an expected failure (`xfail`), because it shows finding F8, which is waiting for PANKAJ's OK.
+Automated tests: `tests/test_attack_step4.py` (D1 to D13). First run: D1 to D12 passed and D13 failed (F8). Retest after the approved F8 fix (same day): all 13 pass.
 The app was also started under real `uvicorn` on `127.0.0.1` and checked with `/ask` and two WebSocket clients, one of which left mid-answer. The second client was still served.
 
 | # | Attack tried | Expected | Actual | Result | Severity |
@@ -18,7 +18,7 @@ The app was also started under real `uvicorn` on `127.0.0.1` and checked with `/
 | D10 | Network use during `/ask`, `/add-document` and a WebSocket chat | 0 attempts | 0 attempts | Pass | Medium |
 | D11 | The pipeline raises an error containing a phone number | 500, logged, masked, app keeps serving | 500 logged with status 500; the next request is answered; no raw number in the log | Pass | Medium |
 | D12 | A phone number inside an added document | Masked before it is stored | Index text holds `[PHONE]` | Pass | High |
-| D13 | An answer that mixes in another document's text (as happens for query 1 in the evaluation) | Lower score | **Full marks** (F8) | Fail (xfail) | Medium |
+| D13 | An answer that mixes in another document's text (as happens for query 1 in the evaluation) | Lower score | First run: **full marks** (F8). Retest: accuracy 0.5 | Pass after fix F8 | Medium |
 
 ## F8: The judge gives full marks to answers that mix in other documents
 
@@ -26,12 +26,14 @@ The app was also started under real `uvicorn` on `127.0.0.1` and checked with `/
 - **Root cause:** `ola_agent/evaluation.py`, `score_from_prompt()`. Accuracy only checks that the expected document is the first source. Grounding only checks that the text came from the retrieved passages, and it did, even when those passages are off-topic.
 - **Proposed fix:** Accuracy becomes 1 only when the expected document is the only source, 0.5 when it is first but other documents are mixed in, and 0 otherwise. The rubric line in `JUDGE_PROMPT` changes to say so. This is a step 4 change, so it needs no change request.
 - **Retest:** D13 drops its `xfail` and must pass. The evaluation is rerun and the new averages are reported.
+- **Status: fixed (approved by PANKAJ, 2026-10-14).** The accuracy rule and its line in `JUDGE_PROMPT` now give 0.5 when other documents are mixed in. Retest: D13 passes. The evaluation now shows queries 1, 7, 9 and 11 at 0.50 accuracy, and average accuracy is 0.87 (was 1.00).
 
 ## F9: The answer pipeline mixes unrelated documents into an answer (step 3 behaviour)
 
 - **Finding:** In 4 of the 12 in-scope evaluation answers (queries 1, 7, 9 and 11), the answer includes a passage from another document. For example, the stranded-rider answer ends with "Riders get a full refund when a trip is charged but never completed...".
 - **Root cause:** `ola_agent/guardrails.py`, `check_groundedness()` keeps every passage at or above the 0.433 threshold, whichever document it comes from. The threshold says "this passage is on topic for Ola support", not "this passage answers this question".
-- **Not fixed in this step.** `check_groundedness()` was approved and merged in step 3, so a fix needs a change request (rule.md section 4). Some questions do need two documents (for example, a late driver touches both KB-08 credits and KB-04 refunds), so "keep only the top document" could lose real answers. The right rule must be measured on our queries first. F8's fix makes the evaluation report this problem instead of hiding it.
+- **Status: change request posted, waiting for PANKAJ's OK** (`plans/change-request-F9.md` in the project files). Measured on 17 labelled questions, every extra document kept is a wrong one; the recommendation is to keep passages from the best-matching document only.
+- **Why not fixed directly:** `check_groundedness()` was approved and merged in step 3, so a fix needs a change request (rule.md section 4). Some questions do need two documents (for example, a late driver touches both KB-08 credits and KB-04 refunds), so "keep only the top document" could lose real answers. The right rule must be measured on our queries first. F8's fix makes the evaluation report this problem instead of hiding it.
 
 ## Other observations (no fix proposed now)
 

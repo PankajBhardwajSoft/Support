@@ -93,7 +93,7 @@ tests/test_attack_step4.py::test_d9_judge_prompt_injection PASSED        [ 60%]
 tests/test_attack_step4.py::test_d10_no_network PASSED                   [ 61%]
 tests/test_attack_step4.py::test_d11_internal_error_logged PASSED        [ 62%]
 tests/test_attack_step4.py::test_d12_document_phone_masked_in_index PASSED [ 62%]
-tests/test_attack_step4.py::test_d13_judge_penalises_mixed_documents XFAIL [ 63%]
+tests/test_attack_step4.py::test_d13_judge_penalises_mixed_documents PASSED [ 63%]
 tests/test_mock_llm.py::test_template_observation_is_not_a_result PASSED [ 64%]
 tests/test_mock_llm.py::test_first_call_uses_tool_instead_of_returning_template_text PASSED [ 65%]
 tests/test_mock_llm.py::test_rag_lookup_name_does_not_make_it_a_ticket_tool PASSED [ 65%]
@@ -263,5 +263,5 @@ tests/test_step3.py::test_memory_carries_and_fresh_session_does_not
     s = ChatSessions(client)
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-================ 134 passed, 1 xfailed, 1660 warnings in 23.95s ================
+================ 135 passed, 1660 warnings in 119.14s (0:01:59) ================
 exit code: 0

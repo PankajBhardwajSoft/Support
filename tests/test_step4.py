@@ -103,8 +103,10 @@ def test_judge_rules():
     chunks = [{"text": "Email support and Tier 2 teams work from 8 AM to 10 PM local time, Monday to Saturday."}]
     good = judge(case, chunks[0]["text"], ["KB-06"], chunks)
     assert (good.accuracy, good.grounding, good.completeness, good.safety) == (1.0, 1.0, 1.0, 1.0)
+    mixed = judge(case, chunks[0]["text"], ["KB-06", "KB-02"], chunks)
+    assert mixed.accuracy == 0.5
     half = judge(case, "Email support works from 8 AM to 10 PM local time.", ["KB-02", "KB-06"], chunks)
-    assert half.accuracy == 0.5 and half.completeness == 0.5
+    assert half.accuracy == 0 and half.completeness == 0.5
     refused = judge(case, "I don't know. I couldn't find this.", [], chunks)
     assert refused.accuracy == 0 and refused.completeness == 0 and refused.grounding == 1
 

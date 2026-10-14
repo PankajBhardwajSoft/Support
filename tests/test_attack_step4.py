@@ -213,11 +213,10 @@ def test_d12_document_phone_masked_in_index(api):
     assert stored and not any(PHONE_PATTERN.search(t) for t in stored)
 
 
-# D13 (finding F8): an answer that mixes in another document's text still gets full marks.
-@pytest.mark.xfail(strict=True, reason="F8: the judge does not penalise passages from other documents (fix proposed)")
+# D13 (finding F8, fixed): an answer that mixes in another document's text loses accuracy.
 def test_d13_judge_penalises_mixed_documents():
     case = TEST_SET[0]  # priority question, expects KB-01
     answer = ("A ticket is P1 when a rider or driver is unsafe, stranded, or locked out mid-trip. "
               "Riders get a full refund when a trip is charged but never completed.")
     chunks = [{"text": answer}]
-    assert judge(case, answer, ["KB-01", "KB-04"], chunks).accuracy < 1.0
+    assert judge(case, answer, ["KB-01", "KB-04"], chunks).accuracy == 0.5

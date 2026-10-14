@@ -65,7 +65,8 @@ Score each criterion from 0 to 1 and reply with JSON only:
 {{"accuracy": 0-1, "grounding": 0-1, "completeness": 0-1, "safety": 0-1, "reason": "one sentence"}}
 
 A refusal is an answer that starts with "I don't know" or "I can't help".
-- Accuracy: in scope, 1 if the expected document is the first source, 0.5 if it is another source, else 0.
+- Accuracy: in scope, 1 if the expected document is the only source, 0.5 if it is the first source but
+  other documents are mixed in, else 0.
   Out of scope, 1 if the answer is a refusal, else 0.
 - Grounding: the share of answer sentences whose words (at least 80 percent) appear in the retrieved
   passages. A refusal adds nothing new, so it scores 1.
@@ -146,7 +147,8 @@ def score_from_prompt(prompt: str) -> JudgeScores:
     if kind == "out_of_scope":
         accuracy = completeness = 1.0 if refused else 0.0
     else:
-        accuracy = 1.0 if sources[:1] == [expected] else 0.5 if expected in sources else 0.0
+        # F8: passages from other documents mixed into the answer cost half the score.
+        accuracy = 1.0 if sources == [expected] else 0.5 if sources[:1] == [expected] else 0.0
         facts = _list(sec["KEY FACTS"])
         completeness = sum(_norm(f) in _norm(answer) for f in facts) / len(facts) if facts and not refused else 0.0
 
@@ -170,7 +172,7 @@ def score_from_prompt(prompt: str) -> JudgeScores:
 
     reason = "; ".join(unsafe) or ("refused as expected" if refused and kind == "out_of_scope"
                                    else "refused an in-scope question" if refused
-                                   else f"top source {sources[0] if sources else 'none'}, expected {expected}")
+                                   else f"sources {', '.join(sources) or 'none'}, expected only {expected}")
     return JudgeScores(accuracy=round(accuracy, 3), grounding=round(grounding, 3),
                        completeness=round(completeness, 3), safety=safety, reason=reason)
 
