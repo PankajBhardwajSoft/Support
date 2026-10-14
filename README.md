@@ -11,7 +11,7 @@ A support agent that answers Ola support-policy questions from a knowledge base 
 - Every language-model call uses a deterministic mock (`MOCK_LLM`, on by default). No API key and no network are needed.
 - The mock extends CrewAI's own extension point, `crewai.llms.base_llm.BaseLLM` (`ola_agent/mock_llm.py`).
 - **CrewAI telemetry is disabled.** `ola_agent/config.py` sets `CREWAI_DISABLE_TELEMETRY=true` and `OTEL_SDK_DISABLED=true` before CrewAI is imported, and overrides any other value already set in the shell.
-- Setting `MOCK_LLM=false` stops the program with an error; a real LLM is not wired in.
+- `MOCK_LLM=false` switches on an optional real model through Groq (see below). Without a Groq key it stops with an error. Every test and every transcript in this repo uses the mock.
 
 ## Dataset design choices (Part 1, Task 1)
 
@@ -186,6 +186,27 @@ python scripts\run_eval.py
 uvicorn ola_agent.api:app
 ```
 
+## Optional: a real model through Groq
+
+Added by an approved change request (2026-10-14). The mock stays the default and graded runs never use Groq.
+
+- **What uses Groq:** only the Response Composer and the evaluation judge. The Retrieval and Lookup agents stay on the mock, so the tools are always called the same way. The model is `llama-3.3-70b-versatile` (change it with `GROQ_MODEL`).
+- **How the answer stays grounded:** with the mock, the answer is copied from the KB. With Groq, the model writes its own sentences and the groundedness guardrail checks each one against the kept passages and the ticket result. A sentence stays only if at least 80 percent of its words come from that evidence and every number, negation ("not") and ticket status in it does too. If nothing is left, the answer is the tool's ticket result or "I don't know". The ticket and confidence always come from the tools, never from the model's text.
+- **Known limit (finding F10, `security/groq_attack_test.md`):** the check counts words, not their order, so KB words rearranged into a wrong fact can pass. A fix will be measured on real Groq answers first.
+- **No new package:** Groq serves an OpenAI-compatible API, which CrewAI's built-in client already speaks.
+
+To try it on your PC:
+
+1. Create a file named `.env` in the project folder with one line: `GROQ_API_KEY=your key`. Git ignores this file; never commit or share the key. Only `GROQ_API_KEY` and `GROQ_MODEL` are read from it.
+2. Run:
+
+```powershell
+$env:MOCK_LLM="false"; python scripts\run_groq.py
+Remove-Item Env:MOCK_LLM
+```
+
+It prints the 15 evaluation questions with Groq's answers, scored by both the rule-based judge and the Groq judge. This script is the only one that does not block the network, because it has to reach Groq.
+
 ## Setup in VS Code (Windows)
 
 1. Install Python 3.11 and VS Code with the Python extension.
@@ -216,7 +237,8 @@ uvicorn ola_agent.api:app
 
 ```
 ola_agent/
-  config.py       settings; turns telemetry off; MOCK_LLM flag
+  config.py       settings; turns telemetry off; MOCK_LLM flag; reads GROQ_* from .env
+  real_llm.py     optional Groq model (MOCK_LLM=false only)
   mock_llm.py     deterministic offline LLM for CrewAI (BaseLLM)
   netguard.py     blocks outbound network during runs and tests
   rag/            Part 1: KB loading, chunking, embeddings, ChromaDB, grounded answers
@@ -236,6 +258,7 @@ scripts/
   download_model.py, build_index.py, calibrate_threshold.py, demo_grounded.py, eval_retrieval.py
   escalation_threshold.py, demo_crew.py, demo_memory.py, demo_guardrails.py
   demo_api.py, run_eval.py
+  run_groq.py     optional: the evaluation with the real Groq model
 tests/            unit tests and attack tests (all run with network blocked)
 transcripts/      saved text output of every demonstration run
 security/         attack-test reports, one per step

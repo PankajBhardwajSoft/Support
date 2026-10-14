@@ -2,7 +2,9 @@
 
 Every agent runs on MockLLM (no network, no keys). Tasks run in order; the
 Composer receives both earlier results as task context and writes one draft
-that must match `SupportResponse` (Task 9).
+that must match `SupportResponse` (Task 9). With MOCK_LLM=false, only the
+Composer uses the real Groq model; the other two agents stay on MockLLM so
+the tool calls stay predictable.
 
 Least autonomy: only the Lookup Agent is given `check_support_ticket_status`.
 """
@@ -15,6 +17,7 @@ from typing import Any
 
 from crewai import Agent, Crew, Process, Task
 
+from ola_agent import config
 from ola_agent.guardrails import join_passages, ticket_sentence
 from ola_agent.mock_llm import MockLLM, _normalize
 from ola_agent.schema import SupportResponse, TicketInfo
@@ -26,6 +29,13 @@ NO_TICKET = {"found": False, "record_id": None, "message": "No ticket ID in the 
 _CONTEXT_LABEL = "This is the context you're working with:"
 _CONTEXT_END = "Provide your complete response"
 _CONTEXT_SEPARATOR = "----------"
+
+# Added to the Composer's task only for the real model.
+REAL_COMPOSER_RULES = (
+    " Use only the policy passages and the ticket result given to you as context. "
+    "Reuse their wording; do not add facts, numbers or phone numbers of your own. "
+    "If they do not answer the question, reply exactly: I don't know."
+)
 
 
 def _lookup_responder(task_text: str, observations: list[str]) -> str:
@@ -127,14 +137,15 @@ def build_crew(question: str, client=None) -> tuple[Crew, PolicySearchTool, Tick
         goal="Combine the policy passages and the ticket result into one reply.",
         backstory="You write the reply the customer receives.",
         tools=[],
-        llm=ComposerLLM(),
+        llm=ComposerLLM() if config.MOCK_LLM else _real_llm(),
         allow_delegation=False,
     )
     # The question is the whole task description, so the tools receive it unchanged.
     search_task = Task(description=question, expected_output="Policy passages as JSON.", agent=retrieval)
     lookup_task = Task(description=question, expected_output="Ticket lookup result as JSON.", agent=lookup)
     compose_task = Task(
-        description=f"Write one reply to the customer question: {question}",
+        description=f"Write one reply to the customer question: {question}"
+        + ("" if config.MOCK_LLM else REAL_COMPOSER_RULES),
         expected_output="A reply matching the SupportResponse schema.",
         agent=composer,
         context=[search_task, lookup_task],
@@ -151,14 +162,28 @@ def run_crew(question: str, client=None) -> CrewRun:
     # Task 9: validate in code, not only through CrewAI's conversion.
     draft = SupportResponse.model_validate(output.pydantic.model_dump() if output.pydantic else json.loads(output.raw))
     search_raw, lookup_raw = output.tasks_output[0].raw, output.tasks_output[1].raw
+    search, lookup = _as_json(search_raw, {"chunks": []}), _as_json(lookup_raw, NO_TICKET)
+    if not config.MOCK_LLM:
+        # The ticket and confidence come from the tools, never from the model's text.
+        top = max((c["similarity"] for c in search.get("chunks", [])), default=0.0)
+        draft = draft.model_copy(update={
+            "ticket": TicketInfo(**lookup) if lookup.get("record_id") else None,
+            "confidence": min(max(top, 0.0), 1.0),
+        })
     return CrewRun(
         draft=draft,
-        search=_as_json(search_raw, {"chunks": []}),
-        lookup=_as_json(lookup_raw, NO_TICKET),
+        search=search,
+        lookup=lookup,
         policy_tool_calls=list(policy_tool.calls),
         ticket_tool_calls=list(ticket_tool.calls),
         agents={a.role: a for a in crew.agents},
     )
+
+
+def _real_llm():
+    from ola_agent.real_llm import groq_llm
+
+    return groq_llm()
 
 
 def _as_json(raw: str, default: dict[str, Any]) -> dict[str, Any]:

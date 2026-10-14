@@ -103,7 +103,7 @@ def test_telemetry_forced_off_even_if_shell_enables_it():
     assert r.stdout.strip() == "true true"
 
 
-def test_mock_llm_false_is_refused():
-    r = _python("import ola_agent", {"MOCK_LLM": "false"})
+def test_mock_llm_false_without_key_is_refused():
+    r = _python("import ola_agent", {"MOCK_LLM": "false", "GROQ_API_KEY": ""})
     assert r.returncode != 0
-    assert "MOCK_LLM=false is not supported" in r.stderr
+    assert "MOCK_LLM=false needs a Groq API key" in r.stderr

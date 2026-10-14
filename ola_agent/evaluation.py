@@ -1,5 +1,8 @@
 """Evaluation at scale (Part 3, Task 13): 15 queries scored by an LLM-as-judge prompt under MOCK_LLM.
 
+With MOCK_LLM=false, scripts/run_groq.py also sends the same JUDGE_PROMPT to
+the Groq model and prints its scores next to the rule-based ones.
+
 A mock cannot judge meaning, so `JudgeLLM` reads the filled-in judge prompt
 and applies the fixed rules written in that prompt (PRD Q6, approved by
 PANKAJ on 2026-10-14). The scores measure our own rules, not a real model's
@@ -196,9 +199,13 @@ class EvalRow:
     scores: JudgeScores
 
 
-def judge(case: EvalCase, answer: str, sources: list[str], chunks: list[dict], llm: JudgeLLM | None = None) -> JudgeScores:
+def judge(case: EvalCase, answer: str, sources: list[str], chunks: list[dict], llm=None) -> JudgeScores:
+    """Score one answer. `llm` is the rule-based JudgeLLM by default, or the Groq model (MOCK_LLM=false)."""
     llm = llm or JudgeLLM()
     reply = llm.call([{"role": "user", "content": build_judge_prompt(case, answer, sources, chunks)}])
+    # A real model may wrap the JSON in a code fence; take the outermost {...}.
+    start, end = reply.find("{"), reply.rfind("}")
+    reply = reply[start:end + 1] if 0 <= start < end else reply
     return JudgeScores.model_validate_json(reply)  # a malformed verdict is an error, not a silent pass
 
 
