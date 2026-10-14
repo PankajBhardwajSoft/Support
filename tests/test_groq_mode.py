@@ -71,7 +71,7 @@ def test_groq_llm_points_at_groq_with_default_model(monkeypatch):
     monkeypatch.setenv("GROQ_API_KEY", FAKE_KEY)
     monkeypatch.delenv("GROQ_MODEL", raising=False)
     llm = groq_llm()  # builds the client only; no request is sent
-    assert llm.model == "llama-3.3-70b-versatile"
+    assert llm.model == "openai/gpt-oss-120b"
     assert llm.base_url == "https://api.groq.com/openai/v1"
     assert llm.temperature == 0
 

@@ -190,7 +190,7 @@ uvicorn ola_agent.api:app
 
 Added by an approved change request (2026-10-14). The mock stays the default and graded runs never use Groq.
 
-- **What uses Groq:** only the Response Composer and the evaluation judge. The Retrieval and Lookup agents stay on the mock, so the tools are always called the same way. The model is `llama-3.3-70b-versatile` (change it with `GROQ_MODEL`).
+- **What uses Groq:** only the Response Composer and the evaluation judge. The Retrieval and Lookup agents stay on the mock, so the tools are always called the same way. The model is `openai/gpt-oss-120b` (change it with `GROQ_MODEL`).
 - **How the answer stays grounded:** with the mock, the answer is copied from the KB. With Groq, the model writes its own sentences and the groundedness guardrail checks each one against the kept passages and the ticket result. A sentence stays only if at least 80 percent of its words come from that evidence and every number, negation ("not") and ticket status in it does too. If nothing is left, the answer is the tool's ticket result or "I don't know". The ticket and confidence always come from the tools, never from the model's text.
 - **Known limit (finding F10, `security/groq_attack_test.md`):** the check counts words, not their order, so KB words rearranged into a wrong fact can pass. A fix will be measured on real Groq answers first.
 - **No new package:** Groq serves an OpenAI-compatible API, which CrewAI's built-in client already speaks.

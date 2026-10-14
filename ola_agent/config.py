@@ -41,7 +41,7 @@ MOCK_LLM: bool = _env_flag("MOCK_LLM", True)
 # Optional real LLM through Groq (change request approved 2026-10-14, replacing
 # PRD decision D18). Only the Response Composer and the eval judge use it.
 GROQ_BASE_URL = "https://api.groq.com/openai/v1"
-GROQ_DEFAULT_MODEL = "llama-3.3-70b-versatile"
+GROQ_DEFAULT_MODEL = "openai/gpt-oss-120b"
 
 if not MOCK_LLM:
     _load_groq_settings()

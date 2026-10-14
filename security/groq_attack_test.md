@@ -20,7 +20,7 @@ Also checked (`tests/test_groq_mode.py`): the API key never appears in a respons
 - **Finding:** On PANKAJ's PC (2026-10-14, model `openai/gpt-oss-120b`), the first question failed. The composer was asked for the full `SupportResponse`, the model filled `ticket` with `record_id: null` instead of leaving it empty, and Groq rejected the reply because it did not match the schema. The answer it wrote was just "P1".
 - **Root cause:** `ola_agent/crew.py` asked the real model for fields the code already takes from the tools (ticket, sources, confidence).
 - **Fix:** with the real model, the Composer is asked only for `{"answer": ...}` and to answer in one to three full sentences. The code builds the rest from the tools. Mock mode is unchanged (same transcripts). New test `test_real_composer_is_asked_for_the_reply_text_only`.
-- **Also found:** `llama-3.3-70b-versatile` is not available on PANKAJ's Groq account (404 `model_not_found`). The models it offers for chat are `openai/gpt-oss-120b`, `openai/gpt-oss-20b` and `qwen/qwen3.8-27b`. `GROQ_MODEL` picks one without a code change.
+- **Also found:** `llama-3.3-70b-versatile` is not available on PANKAJ's Groq account (404 `model_not_found`). The models it offers for chat are `openai/gpt-oss-120b`, `openai/gpt-oss-20b` and `qwen/qwen3.8-27b`. `GROQ_MODEL` picks one without a code change. PANKAJ chose `openai/gpt-oss-120b` as the default (2026-10-14).
 
 ## F10: The sentence check does not see word order
 
