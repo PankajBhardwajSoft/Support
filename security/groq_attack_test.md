@@ -28,7 +28,7 @@ Also checked (`tests/test_groq_mode.py`): the API key never appears in a respons
 - **Root cause:** `supported_sentences()` in `ola_agent/guardrails.py` uses a bag of words, the same rule as the step 4 judge's grounding score.
 - **Fix tried and measured, not applied:** an order-aware version (longest common word sequence with one KB sentence, 80 percent) cuts G6 at 0.77, but also cuts correct paraphrases: "Your refund to a card or UPI usually arrives within 5 to 7 working days" scores 0.60, and "You get a full refund if you are billed twice for the same ride" scores 0.79. The gap between right and wrong is too small to pick a number without real Groq answers (rule.md 1.5).
 - **Measured on the real run (2026-10-14, `openai/gpt-oss-120b`, two runs, 18 different answer sentences, same two rules as above):** every sentence is correct and reuses the KB's wording. The bag-of-words rule keeps all 18 (lowest 0.93). The order-aware rule at 80 percent would wrongly cut one: the KB-10 answer joins two KB sentences with a semicolon and scores 0.52; split at the semicolon, both halves score 1.00, and then the lowest real sentence is 0.87, against 0.77 for G6. No real answer rearranged KB words into a wrong fact.
-- **Status: open, decision for PANKAJ.** The margin (0.87 right vs 0.77 wrong) comes from one model and 18 sentences. Mock mode is not affected: there the answer is copied from the KB.
+- **Status: left open by PANKAJ's choice (2026-10-14): documented as a known limit; G6 stays `xfail`.** The margin (0.87 right vs 0.77 wrong) comes from one model and 18 sentences. Mock mode is not affected: there the answer is copied from the KB.
 
 ## Other observations
 
