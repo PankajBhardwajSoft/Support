@@ -6,7 +6,8 @@ that must match `SupportResponse` (Task 9). With MOCK_LLM=false, only the
 Composer uses the real Groq model; the other two agents stay on MockLLM so
 the tool calls stay predictable.
 
-Least autonomy: only the Lookup Agent is given `check_support_ticket_status`.
+Least autonomy: only the Lookup Agent is given `check_support_ticket_status`,
+and `build_crew` checks every agent against `governance.ALLOWED_TOOLS`.
 """
 
 from __future__ import annotations
@@ -19,6 +20,7 @@ from crewai import Agent, Crew, Process, Task
 from pydantic import BaseModel, ConfigDict
 
 from ola_agent import config
+from ola_agent.governance import check_tool_permissions
 from ola_agent.guardrails import join_passages, ticket_sentence
 from ola_agent.mock_llm import MockLLM, _normalize
 from ola_agent.schema import SupportResponse, TicketInfo
@@ -164,6 +166,7 @@ def build_crew(question: str, client=None) -> tuple[Crew, PolicySearchTool, Tick
     )
     crew = Crew(agents=[retrieval, lookup, composer], tasks=[search_task, lookup_task, compose_task],
                 process=Process.sequential, verbose=False)
+    check_tool_permissions(crew.agents)  # Task 15: raises before the crew can run
     return crew, policy_tool, ticket_tool
 
 

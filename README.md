@@ -4,12 +4,12 @@
 
 A support agent that answers Ola support-policy questions from a knowledge base and checks support-ticket status from a generated dataset. Built with CrewAI, an Autogen review stage, LangChain session memory, ChromaDB and SentenceTransformers, behind a FastAPI backend.
 
-> Status: step 2 of 6 (Part 1: dataset and RAG core). See `TRACKER.md` for progress against every requirement.
+> Status: step 5 of 6 (Part 4: Autogen review, governance, caching). See `TRACKER.md` for progress against every requirement.
 
 ## Runs offline with zero API keys
 
 - Every language-model call uses a deterministic mock (`MOCK_LLM`, on by default). No API key and no network are needed.
-- The mock extends CrewAI's own extension point, `crewai.llms.base_llm.BaseLLM` (`ola_agent/mock_llm.py`).
+- The mock extends CrewAI's own extension point, `crewai.llms.base_llm.BaseLLM` (`ola_agent/mock_llm.py`). The Autogen review agents use `MockChatClient`, built on Autogen's own `ChatCompletionClient` (`ola_agent/mock_autogen.py`).
 - **CrewAI telemetry is disabled.** `ola_agent/config.py` sets `CREWAI_DISABLE_TELEMETRY=true` and `OTEL_SDK_DISABLED=true` before CrewAI is imported, and overrides any other value already set in the shell.
 - `MOCK_LLM=false` switches on an optional real model through Groq (see below). Without a Groq key it stops with an error. Every test and every transcript in this repo uses the mock.
 
@@ -155,6 +155,7 @@ python scripts\demo_guardrails.py
 | `POST /add-document` | `AddDocumentRequest(doc_id, title, text)` | `AddDocumentResponse(trace_id, doc_id, collection, chunks_added)` | Chunks a new document and adds it to `kb_fixed` |
 | `WebSocket /ws/chat` | text messages | JSON per turn: `trace_id`, `session_id`, `answer`, `sources`, `grounded` | Multi-turn chat with session memory, one session per connection |
 
+- **`/add-document` has no sign-in** (finding O3, left open by choice): anyone who can reach the API can add text that the bot will then quote as policy. Run the API only where you trust every client.
 - `/add-document` accepts only new IDs like `KB-13` (no paths, no overwriting the 12 originals: 409). Phone numbers in the text are masked before storing, and text with an injection pattern is rejected (400).
 - The WebSocket catches `WebSocketDisconnect`, including a client that leaves mid-answer. Only that connection ends; other clients keep being served.
 - `transcripts/step4_api.txt` shows both endpoints, the new document being found, and client A leaving while client B carries on with its memory.
@@ -184,6 +185,44 @@ Averages on our 15 queries (`transcripts/step4_eval.txt`): accuracy 1.00, ground
 python scripts\demo_api.py
 python scripts\run_eval.py
 uvicorn ola_agent.api:app
+```
+
+## Resilience and governance (Part 4, Tasks 14 to 16)
+
+Every question goes through this order (PRD D14): input guardrails, budget cap, cache check (the crew runs on a miss), schema check, groundedness check, Autogen review, response.
+
+### Autogen review (Task 14)
+
+`ola_agent/review.py`. A `RoundRobinGroupChat` of two agents with `max_turns=2`, built with `custom_message_types=[StructuredMessage[Verdict]]`:
+
+- **Policy_Compliance_Reviewer** checks every sentence of the draft against the retrieved passages and the ticket result (the same sentence rule as the groundedness check) and lists the ones they do not support.
+- **Final_Editor** uses `output_content_type=Verdict` and returns `Verdict(approved, final_answer, reason)`. Nothing listed: approved, answer unchanged. Otherwise: not approved, and only the supported sentences are kept, or "I don't know" if none is left. The editor only removes text.
+- The input is one task message holding the draft and the evidence. Both agents run on the mock client in every mode.
+- `transcripts/step5_review.txt`: a real answer approved unchanged, and the same draft with a planted sentence ("Ola also refunds the full fare for every late ride.") revised with that sentence removed. In mock mode the groundedness check has already rebuilt the answer from the KB, so the review approves every normal answer; it does real work on the model's own words in Groq mode.
+
+### Governance (Task 15)
+
+The brief describes two of the four layers, the application layer and the runtime layer, and this project covers those two.
+
+- **Least autonomy (application layer).** Only the Lookup Agent is given `check_support_ticket_status`. `ola_agent/governance.py` holds an `ALLOWED_TOOLS` table (Retrieval Agent: policy search only; Lookup Agent: ticket lookup only; Response Composer: no tools), and `build_crew()` checks every agent against it each time a crew is built. Giving the ticket tool to any other agent, or adding an agent that is not in the table, raises `PermissionError` before the crew can run. `transcripts/step5_governance.txt` shows the Composer being refused the tool and a ticket question still answered through the Lookup Agent.
+- **Risk classification: Medium.** The brief's scheme lists customer support tickets under Medium, and that fits. The agent reads ticket records and answers policy questions for riders and drivers, so a wrong answer can mislead a customer about a refund or an SLA. It takes no actions: it cannot issue refunds, change accounts or close tickets, and escalations stay with a human. Phone numbers are masked before anything is stored, and every answer is checked against the policy text twice (groundedness check and review).
+- **Budget cap (runtime layer).** Each request's size is estimated without a tokenizer: the larger of 1.3 tokens per word and 1 token per 4 characters, counting characters as sent so padding cannot hide size. The cap is 2,000 tokens per request. An oversized request is rejected right after the input guardrails, before the cache, the crew or any real model: `/ask` returns HTTP 413 and the WebSocket replies with the same message. The rejection is logged. The transcript shows a normal question accepted (about 15 tokens) and a simulated 2,400-token request rejected.
+
+### Response caching (Task 16)
+
+`ola_agent/cache.py`, an in-memory cache of at most 256 entries (oldest dropped first) for the grounded-generation step.
+
+- **Key:** the phone-masked question, Unicode-normalised, lower-cased, with spaces collapsed and trailing punctuation removed, plus the exact ticket IDs it contains (the ticket lookup is case-sensitive; finding F12).
+- **Value:** the crew's result (draft, passages, ticket result). The groundedness check and the review still run on every hit.
+- **Safety:** chat follow-ups are rewritten with the session's own ticket ID before the cache, so one session's answer never reaches another. Blocked and oversized questions are never cached. `/add-document` clears the cache.
+- `transcripts/step5_cache.txt`: the first ask makes 5 model calls, 1 policy search and 1 ticket lookup and takes about 6 seconds; the same question again, and again with other case and spacing, makes 0 model and 0 tool calls and takes about 4 ms, with the same answer.
+
+### Run Part 4
+
+```powershell
+python scripts\demo_review.py
+python scripts\demo_governance.py
+python scripts\demo_cache.py
 ```
 
 ## Optional: a real model through Groq
@@ -246,11 +285,15 @@ ola_agent/
   crew.py         Part 2: Retrieval, Lookup and Composer agents
   schema.py       Part 2: SupportResponse, the structured output
   guardrails.py   Part 2: phone masking, injection and scope checks, groundedness
-  pipeline.py     Part 2: one question end to end (guardrails, crew, checks)
+  pipeline.py     one question end to end (guardrails, budget, cache, crew, checks, review)
   memory.py       Part 2: LangChain session memory
   api.py          Part 3: FastAPI app, two HTTP endpoints and a WebSocket
   request_log.py  Part 3: JSON-Lines request log with trace IDs, phones masked
   evaluation.py   Part 3: 15-query test set, judge prompt and mock judge
+  review.py       Part 4: Autogen review team and Verdict model
+  mock_autogen.py Part 4: deterministic offline model client for Autogen
+  governance.py   Part 4: allowed tools per agent, request budget cap
+  cache.py        Part 4: in-memory response cache
 dataset.py        Part 1 Task 1: seeded support-ticket generator
 kb/               12 knowledge-base documents
 scripts/
@@ -258,6 +301,7 @@ scripts/
   download_model.py, build_index.py, calibrate_threshold.py, demo_grounded.py, eval_retrieval.py
   escalation_threshold.py, demo_crew.py, demo_memory.py, demo_guardrails.py
   demo_api.py, run_eval.py
+  demo_review.py, demo_governance.py, demo_cache.py
   run_groq.py     optional: the evaluation with the real Groq model
 tests/            unit tests and attack tests (all run with network blocked)
 transcripts/      saved text output of every demonstration run

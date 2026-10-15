@@ -50,6 +50,6 @@ Status values: Not started / In progress / Done / Failed
 
 | # | Acceptance criterion | Status | Code file | Transcript | Attack test | Notes |
 |---|---|---|---|---|---|---|
-| 4.1 | Autogen review approves one draft unchanged and revises another, with Pydantic verdicts | Not started | | | | |
-| 4.2 | Least autonomy shown; risk classification justified; budget cap rejects oversized request | Not started | | | | |
-| 4.3 | Cache hit with before/after evidence | Not started | | | | |
+| 4.1 | Autogen review approves one draft unchanged and revises another, with Pydantic verdicts | Done | `ola_agent/review.py`, `ola_agent/mock_autogen.py` | `transcripts/step5_review.txt` | E1, E2, E3 | RoundRobinGroupChat, max_turns=2, custom_message_types=[StructuredMessage[Verdict]]; editor only removes text |
+| 4.2 | Least autonomy shown; risk classification justified; budget cap rejects oversized request | Done | `ola_agent/governance.py`, `ola_agent/crew.py`, `ola_agent/pipeline.py`, `ola_agent/api.py` | `transcripts/step5_governance.txt` | E4, E5, E11 | ALLOWED_TOOLS checked on every crew build; risk Medium (README); cap 2,000 tokens, HTTP 413; only the two layers the brief describes (PRD Q7) |
+| 4.3 | Cache hit with before/after evidence | Done | `ola_agent/cache.py`, `ola_agent/pipeline.py` | `transcripts/step5_cache.txt` | E6 to E10 | Second ask: 0 model and 0 tool calls, about 4 ms vs 6 s; F12 fixed (ticket IDs in the key) |

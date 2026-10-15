@@ -16,6 +16,7 @@ from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconn
 from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel, ConfigDict, Field
 
+from ola_agent.cache import CACHE
 from ola_agent.guardrails import find_injection, mask_phones
 from ola_agent.memory import ChatSessions
 from ola_agent.pipeline import ask
@@ -95,6 +96,8 @@ def ask_endpoint(body: AskRequest, request: Request) -> AskResponse:
     r = result.response
     request.state.log.update(question=result.question, answer=r.answer, sources=r.sources,
                              grounded=r.grounded, guardrails_fired=result.guardrails_fired)
+    if result.over_budget:  # Task 15 runtime layer: rejected before the crew ran
+        raise HTTPException(status_code=413, detail=r.answer)
     return AskResponse(trace_id=request.state.trace_id, answer=r.answer, sources=r.sources, ticket=r.ticket,
                        grounded=r.grounded, confidence=r.confidence, guardrails_fired=result.guardrails_fired)
 
@@ -116,6 +119,7 @@ def add_document(body: AddDocumentRequest, request: Request) -> AddDocumentRespo
             raise HTTPException(status_code=409, detail=f"{body.doc_id} already exists and cannot be overwritten.")
         chunks = fixed_size_chunks(doc)
         upsert_chunks(collection, chunks)
+        CACHE.clear()  # cached answers may no longer match the KB
     request.state.log.update(answer=f"added {len(chunks)} chunk(s)", sources=[body.doc_id])
     return AddDocumentResponse(trace_id=request.state.trace_id, doc_id=body.doc_id,
                                collection=RECOMMENDED_COLLECTION, chunks_added=len(chunks))

@@ -1,0 +1,19 @@
+$ python scripts/demo_governance.py   (MOCK_LLM, network blocked)
+1) Least autonomy: which agent may hold which tool
+   Retrieval Agent: ['search_ola_policies']
+   Lookup Agent: ['check_support_ticket_status']
+   Response Composer: no tools
+   agents wired with check_support_ticket_status: ['Lookup Agent']
+   Composer given the ticket tool: blocked with PermissionError: agent 'Response Composer' may not use check_support_ticket_status
+   ticket question still answered by the Lookup Agent: calls=['TKT-0023']
+   answer: Ticket TKT-0023 is Resolved, with a resolution time of 114.8 hours. Its escalation score is 0.283, below the escalation threshold of 0.50.
+
+2) Risk classification: MEDIUM. The brief's scheme lists customer support tickets under Medium. The agent reads ticket records and answers policy questions for riders and drivers, so a wrong answer can mislead a customer about a refund or an SLA. It takes no actions: it cannot issue refunds, change accounts or close tickets, and escalations stay with a human. Phone numbers are masked before anything is stored, and every answer is checked against the policy text.
+
+3) Budget cap: 2000 tokens per request (estimate: max(1.3 x words, chars / 4))
+   normal question, about 15 tokens: HTTP 200, answer starts: above the estimate shown at booking with no change of route,...
+   oversized simulated request, about 2400 tokens: HTTP 413, detail: Sorry, that request is too long. Please keep your question under about 2000 tokens (roughly 1500 words).
+   its log line: status=413, guardrails_fired=['runtime: budget cap (about 2400 tokens, over the 2000-token cap)']
+
+GOVERNANCE DEMO: PASS
+exit code: 0
