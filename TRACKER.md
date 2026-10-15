@@ -9,7 +9,7 @@ Status values: Not started / In progress / Done / Failed
 
 | # | Requirement | Status | Code file | Transcript | Attack test | Notes |
 |---|---|---|---|---|---|---|
-| G1 | All LLM calls default to deterministic `MOCK_LLM`, zero API keys, zero network | In progress | `ola_agent/config.py`, `ola_agent/mock_llm.py` | `transcripts/step1_smoke_test.txt` | `security/step1_attack_test.md` | Waiting on finding F1 (network guard lets localhost proxy traffic through) |
+| G1 | All LLM calls default to deterministic `MOCK_LLM`, zero API keys, zero network | In progress | `ola_agent/config.py`, `ola_agent/mock_llm.py` | `transcripts/step1_smoke_test.txt` | `security/step1_attack_test.md` | Waiting on finding F1 (network guard lets localhost proxy traffic through). Optional Groq mode (approved change request, 2026-10-14) is off by default; the full suite runs with no key (`transcripts/groq_pytest.txt`, `security/groq_attack_test.md`) |
 | G2 | CrewAI mock extends `crewai.llms.base_llm.BaseLLM` | Done | `ola_agent/mock_llm.py` | `transcripts/step1_pytest.txt` | A1, A7 | |
 | G3 | Pitfall 1: template "Observation:" text is never read as a tool result | Done | `ola_agent/mock_llm.py` (`extract_observations`) | `transcripts/step1_pytest.txt` | A1 | |
 | G4 | Pitfall 2: tool arguments dispatched by schema, not tool name | Done | `ola_agent/mock_llm.py` (`build_tool_args`) | `transcripts/step1_pytest.txt` | A2, A3 | |

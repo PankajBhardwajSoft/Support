@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from ola_agent import config
 from ola_agent.crew import CrewRun, run_crew
 from ola_agent.guardrails import GroundednessCheck, InputCheck, check_groundedness, check_input
 from ola_agent.rag.generate import RECOMMENDED_COLLECTION, load_threshold
@@ -35,7 +36,8 @@ def ask(question: str, client=None) -> PipelineResult:
         return PipelineResult(check.text, response, check, guardrails_fired=fired)
 
     run = run_crew(check.text, client)
-    output = check_groundedness(run.draft, run.search.get("chunks", []), load_threshold(RECOMMENDED_COLLECTION))
+    output = check_groundedness(run.draft, run.search.get("chunks", []), load_threshold(RECOMMENDED_COLLECTION),
+                                model_written=not config.MOCK_LLM)
     if output.fired:
         action = "refused" if output.refused else "trimmed"
         fired.append(f"output: groundedness {action} ({output.reason})")
