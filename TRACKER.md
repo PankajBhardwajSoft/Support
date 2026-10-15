@@ -9,14 +9,14 @@ Status values: Not started / In progress / Done / Failed
 
 | # | Requirement | Status | Code file | Transcript | Attack test | Notes |
 |---|---|---|---|---|---|---|
-| G1 | All LLM calls default to deterministic `MOCK_LLM`, zero API keys, zero network | In progress | `ola_agent/config.py`, `ola_agent/mock_llm.py` | `transcripts/step1_smoke_test.txt` | `security/step1_attack_test.md` | Waiting on finding F1 (network guard lets localhost proxy traffic through). Optional Groq mode (approved change request, 2026-10-14) is off by default; the full suite runs with no key (`transcripts/groq_pytest.txt`, `security/groq_attack_test.md`) |
+| G1 | All LLM calls default to deterministic `MOCK_LLM`, zero API keys, zero network | Done (known limit) | `ola_agent/config.py`, `ola_agent/mock_llm.py`, `ola_agent/mock_autogen.py` | `transcripts/step1_smoke_test.txt`, `transcripts/step5_pytest.txt` | `security/step1_attack_test.md` | Every agent, the judge and the Autogen review run on mocks; all 16 transcripts rebuilt with no key (`scripts/run_all_transcripts.py --check`). F1 (the test guard trusts localhost) left unfixed by PANKAJ's choice, listed in README Known limits. Optional Groq mode is off by default |
 | G2 | CrewAI mock extends `crewai.llms.base_llm.BaseLLM` | Done | `ola_agent/mock_llm.py` | `transcripts/step1_pytest.txt` | A1, A7 | |
 | G3 | Pitfall 1: template "Observation:" text is never read as a tool result | Done | `ola_agent/mock_llm.py` (`extract_observations`) | `transcripts/step1_pytest.txt` | A1 | |
 | G4 | Pitfall 2: tool arguments dispatched by schema, not tool name | Done | `ola_agent/mock_llm.py` (`build_tool_args`) | `transcripts/step1_pytest.txt` | A2, A3 | |
-| G5 | `CREWAI_DISABLE_TELEMETRY=true` set before running the crew, confirmed in README | In progress | `ola_agent/config.py` | `transcripts/step1_smoke_test.txt` | A8, A9 | Waiting on finding F2 (negative-control test is invalid) |
+| G5 | `CREWAI_DISABLE_TELEMETRY=true` set before running the crew, confirmed in README | Done (known limit) | `ola_agent/config.py` | `transcripts/step1_smoke_test.txt` | A8, A9 | Set and confirmed in README; F2 (the A8 negative control cannot fail) left unfixed by PANKAJ's choice, listed in README Known limits |
 | G6 | README states Ola track and dataset design choices | Done | `README.md` | `transcripts/step2_dataset.txt` | B1 | |
-| G7 | Everything is code or text; no images, PDFs, slides, video, audio | In progress | whole repo | | pre-push scan | Checked at every push |
-| G8 | One public GitHub repository | In progress | github.com/PankajBhardwajSoft/Support | | pre-push scan | Repo exists; final submission at the end |
+| G7 | Everything is code or text; no images, PDFs, slides, video, audio | Done | whole repo | | pre-push scan | Step 6: every tracked file is .py, .md, .txt, .ini, .json or .gitignore |
+| G8 | One public GitHub repository | Done | github.com/PankajBhardwajSoft/Support | | pre-push scan | Public, checked 2026-10-15; sending the link to the course is PANKAJ's |
 
 ## Part 1: Dataset design and RAG core
 
