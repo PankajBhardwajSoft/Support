@@ -112,9 +112,10 @@ def test_d4_malformed_requests(api, log_path):
     assert api.post("/ask", json={"question": 123}).status_code == 422
     assert api.post("/ask", json={"question": "hi", "admin": True}).status_code == 422
     assert api.post("/ask", json={"question": ""}).status_code == 200
-    assert api.post("/ask", json={"question": "refund " * 20000}).status_code == 200
+    # Step 5 budget cap (Task 15): an oversized question is now rejected with 413 instead of answered.
+    assert api.post("/ask", json={"question": "refund " * 20000}).status_code == 413
     statuses = [e["status"] for e in request_log.read_entries()]
-    assert statuses == [422, 422, 422, 422, 422, 200, 200]
+    assert statuses == [422, 422, 422, 422, 422, 200, 413]
 
 
 # D5: a client that disconnects mid-answer, sends binary or sends empty text does not break another client.

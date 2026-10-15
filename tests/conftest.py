@@ -1,5 +1,6 @@
 import pytest
 
+from ola_agent.cache import CACHE
 from ola_agent.netguard import block_network, unblock_network
 
 
@@ -9,3 +10,11 @@ def no_network():
     block_network()
     yield
     unblock_network()
+
+
+@pytest.fixture(autouse=True)
+def empty_cache():
+    """Each test starts with an empty response cache, so one test's answers never reach another."""
+    CACHE.clear()
+    yield
+    CACHE.clear()
