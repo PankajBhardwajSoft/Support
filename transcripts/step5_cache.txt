@@ -1,12 +1,12 @@
 $ python scripts/demo_cache.py   (MOCK_LLM, network blocked)
 1) first ask: 'What is the status of TKT-0023?'
-   cache hit: False   new calls: {'model calls': 5, 'policy tool calls': 1, 'ticket tool calls': 1}   time: 5750 ms
+   cache hit: False   new calls: {'model calls': 5, 'policy tool calls': 1, 'ticket tool calls': 1}   time: 6467 ms
    answer starts: Ticket TKT-0023 is Resolved, with a resolution time of 114.8 hours. It...
 2) same question again: 'What is the status of TKT-0023?'
-   cache hit: True   new calls: {'model calls': 0, 'policy tool calls': 0, 'ticket tool calls': 0}   time: 4 ms
+   cache hit: True   new calls: {'model calls': 0, 'policy tool calls': 0, 'ticket tool calls': 0}   time: 8 ms
    answer starts: Ticket TKT-0023 is Resolved, with a resolution time of 114.8 hours. It...
-3) same question, other case and spacing: '  what is the STATUS of tkt-0023 '
-   cache hit: True   new calls: {'model calls': 0, 'policy tool calls': 0, 'ticket tool calls': 0}   time: 4 ms
+3) same question, other case and spacing: '  what is the STATUS of TKT-0023 '
+   cache hit: True   new calls: {'model calls': 0, 'policy tool calls': 0, 'ticket tool calls': 0}   time: 7 ms
    answer starts: Ticket TKT-0023 is Resolved, with a resolution time of 114.8 hours. It...
 
 cache entries: 1, hits: 2, misses: 1
