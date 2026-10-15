@@ -10,6 +10,7 @@ comparing. The pytest transcripts (fresh-venv runs) and the Groq transcripts
 (real model, PANKAJ's PC) are not rebuilt here.
 """
 
+import difflib
 import os
 import re
 import subprocess
@@ -81,10 +82,13 @@ def main(argv: list[str]) -> int:
         out, code = run(args)
         fresh = f"{saved.splitlines()[0]}\n{out}exit code: {code}\n"
         if check:
-            same = _comparable(fresh) == _comparable(saved)
+            a, b = _comparable(saved), _comparable(fresh)
+            same = a == b
             print(f"{'same   ' if same else 'DIFFERS'}  {name}")
             if not same:
                 failed.append(name)
+                for line in list(difflib.unified_diff(a, b, "saved", "now", n=0, lineterm=""))[:12]:
+                    print(f"         {line}")
         else:
             with open(path, "w", encoding="utf-8") as f:
                 f.write(fresh)
