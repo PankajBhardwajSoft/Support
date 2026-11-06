@@ -58,7 +58,7 @@ def ask(question: str, client=None) -> PipelineResult:
 
     threshold = load_threshold(RECOMMENDED_COLLECTION)
     chunks = run.search.get("chunks", [])
-    output = check_groundedness(run.draft, chunks, threshold, model_written=not config.MOCK_LLM)
+    output = check_groundedness(run.draft, chunks, threshold)
     if output.fired:
         action = "refused" if output.refused else "trimmed"
         fired.append(f"output: groundedness {action} ({output.reason})")

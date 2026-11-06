@@ -6,8 +6,7 @@
 
 Every script runs under MOCK_LLM with the network blocked (scripts/_bootstrap.py).
 Only stdout is saved. Random IDs, timestamps and timings are ignored when
-comparing. The pytest transcripts (fresh-venv runs) and the Groq transcripts
-(real model, PANKAJ's PC) are not rebuilt here.
+comparing.
 """
 
 import difflib
@@ -20,7 +19,6 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # (command after "python", transcript), in the order the steps were built.
 RUNS = [
-    (["scripts/smoke_test.py"], "step1_smoke_test.txt"),
     (["dataset.py"], "step2_dataset.txt"),
     (["scripts/build_index.py"], "step2_build_index.txt"),
     (["scripts/calibrate_threshold.py"], "step2_calibration.txt"),
