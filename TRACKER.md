@@ -9,11 +9,11 @@ Status values: Not started / In progress / Done / Failed
 
 | # | Requirement | Status | Code file | Transcript | Attack test | Notes |
 |---|---|---|---|---|---|---|
-| G1 | All LLM calls default to deterministic `MOCK_LLM`, zero API keys, zero network | Done (known limit) | `ola_agent/config.py`, `ola_agent/mock_llm.py`, `ola_agent/mock_autogen.py` | `transcripts/step1_smoke_test.txt`, `transcripts/step5_pytest.txt` | `security/step1_attack_test.md` | Every agent, the judge and the Autogen review run on mocks; all 16 transcripts rebuilt with no key (`scripts/run_all_transcripts.py --check`). F1 (the test guard trusts localhost) left unfixed by PANKAJ's choice, listed in README Known limits. Optional Groq mode is off by default |
-| G2 | CrewAI mock extends `crewai.llms.base_llm.BaseLLM` | Done | `ola_agent/mock_llm.py` | `transcripts/step1_pytest.txt` | A1, A7 | |
-| G3 | Pitfall 1: template "Observation:" text is never read as a tool result | Done | `ola_agent/mock_llm.py` (`extract_observations`) | `transcripts/step1_pytest.txt` | A1 | |
-| G4 | Pitfall 2: tool arguments dispatched by schema, not tool name | Done | `ola_agent/mock_llm.py` (`build_tool_args`) | `transcripts/step1_pytest.txt` | A2, A3 | |
-| G5 | `CREWAI_DISABLE_TELEMETRY=true` set before running the crew, confirmed in README | Done (known limit) | `ola_agent/config.py` | `transcripts/step1_smoke_test.txt` | A8, A9 | Set and confirmed in README; F2 (the A8 negative control cannot fail) left unfixed by PANKAJ's choice, listed in README Known limits |
+| G1 | All LLM calls default to deterministic `MOCK_LLM`, zero API keys, zero network | Done (known limit) | `ola_agent/config.py`, `ola_agent/mock_llm.py`, `ola_agent/mock_autogen.py` | `transcripts/step3_crew.txt`, `tests/test_mock_llm.py` | `security/step1_attack_test.md` | Every agent, the judge and the Autogen review run on mocks; all 15 transcripts rebuilt with no key (`scripts/run_all_transcripts.py --check`). F1 (the test guard trusts localhost) left unfixed by PANKAJ's choice. No real model is wired in |
+| G2 | CrewAI mock extends `crewai.llms.base_llm.BaseLLM` | Done | `ola_agent/mock_llm.py` | `tests/test_mock_llm.py` | A1, A7 | |
+| G3 | Pitfall 1: template "Observation:" text is never read as a tool result | Done | `ola_agent/mock_llm.py` (`extract_observations`) | `tests/test_mock_llm.py` | A1 | |
+| G4 | Pitfall 2: tool arguments dispatched by schema, not tool name | Done | `ola_agent/mock_llm.py` (`build_tool_args`) | `tests/test_mock_llm.py` | A2, A3 | |
+| G5 | `CREWAI_DISABLE_TELEMETRY=true` set before running the crew, confirmed in README | Done (known limit) | `ola_agent/config.py` | `tests/test_mock_llm.py` | A8, A9 | Set and confirmed in README; F2 (the A8 negative control cannot fail) left unfixed by PANKAJ's choice |
 | G6 | README states Ola track and dataset design choices | Done | `README.md` | `transcripts/step2_dataset.txt` | B1 | |
 | G7 | Everything is code or text; no images, PDFs, slides, video, audio | Done | whole repo | | pre-push scan | Step 6: every tracked file is .py, .md, .txt, .ini, .json or .gitignore |
 | G8 | One public GitHub repository | Done | github.com/PankajBhardwajSoft/Support | | pre-push scan | Public, checked 2026-10-15; sending the link to the course is PANKAJ's |
@@ -23,7 +23,7 @@ Status values: Not started / In progress / Done / Failed
 | # | Acceptance criterion | Status | Code file | Transcript | Attack test | Notes |
 |---|---|---|---|---|---|---|
 | 1.1 | `dataset.py` generates >=40 tickets meeting every threshold; design choices in README | Done | `dataset.py` | `transcripts/step2_dataset.txt` | B1 | 50 tickets, seed 42, escalated 26.0% |
-| 1.2 | Knowledge base has >=12 documents covering every required topic | Done | `kb/` | `transcripts/step2_pytest.txt` | | 12 docs, 4 sentences each |
+| 1.2 | Knowledge base has >=12 documents covering every required topic | Done | `kb/` | `tests/test_step2_data.py` | | 12 docs, 4 sentences each |
 | 1.3 | Two chunking strategies indexed into two separate ChromaDB collections, both retrieving sensibly | Done | `ola_agent/rag/chunking.py`, `ola_agent/rag/index.py` | `transcripts/step2_build_index.txt` | B9, B11 | F3 fixed: fixed-size chunk edges snap to spaces (38 / 48 chunks) |
 | 1.4 | Grounded generation on >=5 in-scope queries plus 1 out-of-scope fallback | Done | `ola_agent/rag/generate.py` | `transcripts/step2_calibration.txt`, `transcripts/step2_grounded_demo_kb_fixed.txt` | B2-B7, B10, B13 | Thresholds 0.433 / 0.391 (after F3); F4 fixed (k < 1 rejected); F5 fixed by the step 3 input guardrail |
 | 1.5 | Precision/recall for both collections with per-query arithmetic and a numbers-cited recommendation | Done | `scripts/eval_retrieval.py` | `transcripts/step2_retrieval_eval.txt` | | kb_fixed 0.600/0.900 vs kb_sentence 0.567/0.900 (rerun after F3); kb_fixed still recommended |
@@ -35,7 +35,7 @@ Status values: Not started / In progress / Done / Failed
 | 2.1 | `check_support_ticket_status` lookup plus designed, justified `escalation_score` | Done | `ola_agent/tools/ticket_lookup.py` | `transcripts/step3_escalation_threshold.txt` | C1, C2 | 0.5 x escalated + 0.5 x age/30; threshold 0.50 = p75; flags 13 escalated + 1 by age alone |
 | 2.2 | Crew of >=3 agents; RAG and lookup tools both invoked via `.kickoff()` | Done | `ola_agent/crew.py`, `ola_agent/tools/` | `transcripts/step3_crew.txt` | C3, C4, C13 | Only the Lookup Agent holds the ticket tool |
 | 2.3 | Multi-turn memory plus fresh-conversation transcript | Done | `ola_agent/memory.py` | `transcripts/step3_memory.txt` | C7 | In-process only |
-| 2.4 | Every crew response validates against a Pydantic schema | Done | `ola_agent/schema.py`, `ola_agent/crew.py` | `transcripts/step3_crew.txt`, `transcripts/step3_pytest.txt` | C8 | `output_pydantic` plus `model_validate` in code |
+| 2.4 | Every crew response validates against a Pydantic schema | Done | `ola_agent/schema.py`, `ola_agent/crew.py` | `transcripts/step3_crew.txt`, `tests/test_step3.py` | C8 | `output_pydantic` plus `model_validate` in code |
 | 2.5 | Input (PII/injection) and output (groundedness) guardrails each shown firing | Done | `ola_agent/guardrails.py`, `ola_agent/pipeline.py` | `transcripts/step3_guardrails.txt` | C5, C6, C9, C10, C12, C14, C16 | Fixes F5 (B13 passes); F6, F7 fixed |
 
 ## Part 3: Evaluation, observability, FastAPI

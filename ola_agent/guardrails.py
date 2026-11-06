@@ -10,8 +10,7 @@ evidence that passes the check: policy passages at or above the calibrated
 "I don't know" threshold, and the ticket tool's result. If nothing passes,
 the answer is "I don't know".
 
-With the real model (MOCK_LLM=false) the Composer's own sentences are kept,
-but only those the same evidence supports (see `supported_sentences`).
+`supported_sentences` is the sentence rule the Autogen review (review.py) uses.
 """
 
 from __future__ import annotations
@@ -169,17 +168,13 @@ def supported_sentences(answer: str, evidence: list[str]) -> tuple[list[str], li
     return kept, cut
 
 
-def check_groundedness(draft: SupportResponse, chunks: list[dict], threshold: float,
-                       model_written: bool = False) -> GroundednessCheck:
+def check_groundedness(draft: SupportResponse, chunks: list[dict], threshold: float) -> GroundednessCheck:
     """Keep only supported evidence; refuse with "I don't know" when none is left.
 
     Supported means at or above the threshold AND from the best-matching
     document (F9): passages from other documents are on topic for Ola support
-    but, on our labelled questions, never part of the answer.
-
-    model_written=False (MOCK_LLM): the answer is rebuilt from that evidence.
-    model_written=True (Groq): the model's sentences are kept if the evidence
-    supports them, and the rest are cut.
+    but, on our labelled questions, never part of the answer. The answer is
+    rebuilt from that evidence.
     """
     above = [c for c in chunks if c["similarity"] >= threshold]
     best_doc = max(above, key=lambda c: c["similarity"])["doc_id"] if above else None
@@ -187,23 +182,13 @@ def check_groundedness(draft: SupportResponse, chunks: list[dict], threshold: fl
     below = [c["chunk_id"] for c in chunks if c["similarity"] < threshold]
     other_doc = [c["chunk_id"] for c in above if c["doc_id"] != best_doc]
     dropped = below + other_doc
-    cut = []
-    if model_written:
-        evidence = [c["text"] for c in supported] + ([ticket_sentence(draft.ticket)] if draft.ticket else [])
-        parts, cut = supported_sentences(draft.answer, evidence) if evidence else ([], [])
-        if not parts and draft.ticket:
-            parts = [ticket_sentence(draft.ticket)]  # the tool's own result, when the model's text was cut
-    else:
-        parts = [ticket_sentence(draft.ticket)] if draft.ticket else []
-        if supported:
-            parts.append(join_passages(supported))
+    parts = [ticket_sentence(draft.ticket)] if draft.ticket else []
+    if supported:
+        parts.append(join_passages(supported))
     if not parts:
         top = max((c["similarity"] for c in chunks), default=0.0)
         refused = SupportResponse(answer=FALLBACK_ANSWER, sources=[], ticket=None, grounded=False, confidence=draft.confidence)
-        if model_written and supported:
-            reason = f"none of the model's {len(cut)} sentence(s) is supported by the evidence"
-        else:
-            reason = f"top policy match {top:.3f} is below the {threshold} threshold and no ticket was looked up"
+        reason = f"top policy match {top:.3f} is below the {threshold} threshold and no ticket was looked up"
         return GroundednessCheck(refused, True, True, reason, dropped)
     response = SupportResponse(
         answer=" ".join(parts),
@@ -217,7 +202,5 @@ def check_groundedness(draft: SupportResponse, chunks: list[dict], threshold: fl
         notes.append(f"dropped {len(below)} passage(s) below the {threshold} threshold")
     if other_doc:
         notes.append(f"dropped {len(other_doc)} passage(s) from other documents than {best_doc}")
-    if cut:
-        notes.append(f"cut {len(cut)} sentence(s) the evidence does not support")
     reason = "; ".join(notes) or None
-    return GroundednessCheck(response, bool(dropped or cut), False, reason, dropped)
+    return GroundednessCheck(response, bool(dropped), False, reason, dropped)

@@ -3,8 +3,7 @@
 A two-agent RoundRobinGroupChat checks the answer after the groundedness check:
 
 - Policy-Compliance-Reviewer: checks every sentence of the draft against the
-  retrieved passages and the ticket result (the same sentence rule as the
-  Groq-mode groundedness check) and lists the ones they do not support.
+  retrieved passages and the ticket result (`supported_sentences` in guardrails.py) and lists the ones they do not support.
 - Final-Editor: returns a `Verdict`. Nothing listed: approved, answer unchanged.
   Otherwise: not approved, and the answer keeps only the supported sentences,
   or "I don't know" if none is left. The editor only removes text; it never adds any.

@@ -25,7 +25,7 @@ Automated tests: `tests/test_attack_step5.py` (E1 to E11). Functional tests: `te
 
 ## Other observations
 
-- **O7, the review approves every mock answer.** In mock mode the groundedness check has already rebuilt the answer from the kept passages, so the reviewer finds nothing to remove (`test_pipeline_review_approves_every_mock_answer`, all 15 questions). The revise case is shown with a planted claim (`transcripts/step5_review.txt`), as the brief suggests. In Groq mode the review checks the model's own words.
+- **O7, the review approves every mock answer.** In mock mode the groundedness check has already rebuilt the answer from the kept passages, so the reviewer finds nothing to remove (`test_pipeline_review_approves_every_mock_answer`, all 15 questions). The revise case is shown with a planted claim (`transcripts/step5_review.txt`), as the brief suggests.
 - **O8, chunk fragments.** Fixed-size chunks can end mid-sentence (for example "...up to a limit of 500 rupees per ticket. Service credits"). The review splits sentences at `. ! ?`, so a claim appended straight after such a fragment is read as part of it and removed with it. That errs on the safe side (more is removed, nothing made up is kept).
 - **O9, a failed review fails closed.** If the editor's verdict is invalid, `ask()` raises and `/ask` returns 500 with a logged line; the draft is never sent unreviewed.
 - **O10, the step 4 test D4 changed.** It used to expect an oversized question (`"refund " * 20000`) to be answered with 200. The budget cap now rejects it with 413, as approved in the step 5 plan.
